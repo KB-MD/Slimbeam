@@ -151,6 +151,16 @@
   .day-footer{display:flex; gap:14px; margin-top:4px; padding-top:8px; border-top:1px solid var(--border); font-size:12.5px; color:var(--ink-muted);}
   .day-footer b{color:var(--ink);}
 
+  .sub-section{margin:12px 0; padding:10px 10px 4px; background:var(--wood-tint); border-radius:var(--radius-s);}
+  .sub-section.cooldown{background:var(--moss-tint);}
+  .sub-section-title{font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.03em; color:var(--wood-dark); margin-bottom:6px;}
+  .sub-section.cooldown .sub-section-title{color:var(--moss);}
+  .sub-ex{display:flex; gap:8px; align-items:flex-start; padding:6px 0; border-top:1px solid rgba(0,0,0,.06);}
+  .sub-ex:first-of-type{border-top:0;}
+  .sub-ex-main{flex:1; min-width:0;}
+  .sub-ex-name{font-size:13px; font-weight:600; color:var(--ink);}
+  .sub-ex-cue{font-size:11.5px; color:var(--ink-muted); margin-top:2px;}
+
   .method-note{margin-top:18px; padding:14px 15px; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-m); font-size:12.5px; color:var(--ink-muted); line-height:1.55;}
   .method-note h3{font-size:14px; margin-bottom:6px; color:var(--ink);}
   .method-note p{margin:0 0 8px;}
@@ -307,7 +317,7 @@
     <p>Kategorien nach echten Handbuch-Kapiteln (1 Brust, 2 Rücken, 3 Trizeps, 4 Schultern, 5 Bauch, 6 Beine, K/C/Z Ganzkörper-Varianten). Drei Belastungsphasen (Grundlagen/Aufbau/Kraft), jede 4. Woche Deload. Dauer/Kalorien sind Schätzungen aus Sätzen, Wiederholungen, Pausen sowie Auf-/Abwärmzeit.</p>
     <p><b>Plattenrechner:</b> Du trägst die Anzahl aktivierter 5-kg-Platten (max. 15) ein, die App berechnet daraus das effektive Gewicht am Griff: kg = (Platten × 5) ÷ (Übersetzung × 2 bei Einzelzug, × 1 bei Doppelzug). Bei Werks-Übersetzung 3:1 entsprechen z. B. alle 15 Platten (75 kg Stapel) 25 kg beim Doppelzug bzw. 12,5 kg beim Einzelzug — Formel nach NOHRDs eigenen Angaben, aber welche Übung Einzel- oder Doppelzug ist, wird anhand der Übungsbeschreibung geschätzt.</p>
     <p><b>Verlauf:</b> Wird lokal im Browser gespeichert. Da die Datei lokal (nicht über einen Webserver) geöffnet wird, kann Safari diesen Speicher unter Umständen nicht zuverlässig behalten (z. B. nach Zurücksetzen der Website-Daten) — nutze bei Bedarf „Verlauf exportieren" als Sicherung.</p>
-    <p>Der „🎬 Video"-Button öffnet das Original-Video von NOHRD zur jeweiligen Seite im selben Tab (gleiche Datei wie der QR-Code im Handbuch).</p>
+    <p><b>Aufwärmen/Cool-down:</b> Jeder Tag enthält 3 Aufwärm- (leicht, dynamisch, am Gerät) und 3 Cool-down-Übungen (sanfte Dehnung, teils am Gerät) — beides bereits erfahrungsbasierte, leichte Varianten realer Katalog-Übungen mit denselben Original-Videos, keine eigenen Handbuchseiten. Die Zeit dafür war schon vorher in der Dauer-Schätzung enthalten (5 Min. Aufwärmen, 2 Min. Cool-down) und wird jetzt nur mit konkreten Übungen gefüllt.</p>
   </div>
 
 </main>
@@ -326,22 +336,49 @@
     <div><span class="n num" id="sessRemaining">–</span><span class="l">Voraussichtlich noch</span></div>
   </div>
   <div class="sess-body">
-    <div class="sess-cat" id="sessCat"></div>
-    <div class="sess-name" id="sessName"></div>
-    <div class="sess-cue" id="sessCue"></div>
-    <a class="ex-video" id="sessVideoLink" href="#" style="display:inline-block; margin-top:10px;">🎬 Video</a>
-    <div class="sess-target" id="sessTarget"></div>
-    <div class="sess-sets" id="sessSets"></div>
-    <div class="sess-weight">
-      <label>Aktivierte Gewichtsplatten (Anzahl)</label>
-      <input type="number" inputmode="numeric" step="1" min="0" max="15" id="sessWeightInput">
-      <div class="sess-plate" id="sessPlateHint"></div>
+    <div id="sessWarmupView">
+      <h2 style="font-size:19px;">🔥 Aufwärmen (mit Gerät)</h2>
+      <div class="hint" style="margin-top:6px;">Locker und leicht, damit Gelenke und Muskulatur bereit sind.</div>
+      <div id="sessWarmupList"></div>
+      <button class="btn-primary" id="sessWarmupNext">Aufwärmen fertig, weiter →</button>
     </div>
-    <div class="sess-nav">
-      <button class="btn-ghost" id="sessPrev">← Zurück</button>
-      <button class="btn-primary" id="sessNext" style="margin-top:0;">Weiter →</button>
+    <div id="sessExerciseView" hidden>
+      <div class="sess-cat" id="sessCat"></div>
+      <div class="sess-name" id="sessName"></div>
+      <div class="sess-cue" id="sessCue"></div>
+      <div style="display:flex; gap:8px; margin-top:10px; flex-wrap:wrap;">
+        <a class="ex-video" id="sessVideoLink" href="#">🎬 Video</a>
+        <button type="button" class="ex-video" id="sessSwapBtn" style="background:var(--surface);">🔄 Übung tauschen</button>
+      </div>
+      <div class="sess-target" id="sessTarget"></div>
+      <div class="sess-sets" id="sessSets"></div>
+      <div class="sess-weight">
+        <label>Aktivierte Gewichtsplatten (Anzahl)</label>
+        <input type="number" inputmode="numeric" step="1" min="0" max="15" id="sessWeightInput">
+        <div class="sess-plate" id="sessPlateHint"></div>
+      </div>
+      <div class="sess-nav">
+        <button class="btn-ghost" id="sessPrev">← Zurück</button>
+        <button class="btn-primary" id="sessNext" style="margin-top:0;">Weiter →</button>
+      </div>
+      <button class="btn-secondary" id="sessFinish">Einheit beenden &amp; speichern</button>
     </div>
-    <button class="btn-secondary" id="sessFinish">Einheit beenden &amp; speichern</button>
+    <div id="sessCooldownView" hidden>
+      <h2 style="font-size:19px;">🧊 Cool-down (Dehnung)</h2>
+      <div class="hint" style="margin-top:6px;">Jede Position sanft einnehmen und 20–30 Sekunden halten.</div>
+      <div id="sessCooldownList"></div>
+      <button class="btn-secondary" id="sessFinishFromCooldown">Einheit beenden &amp; speichern</button>
+    </div>
+    <div id="sessDoneView" hidden>
+      <h2 style="font-size:20px;">Einheit abgeschlossen 💪</h2>
+      <div class="summary" style="margin-top:14px;">
+        <div><span class="n num" id="sessDoneTime">–</span><span class="l">Min. tatsächlich</span></div>
+        <div><span class="n num" id="sessDoneKcal">–</span><span class="l">kcal (geschätzt)</span></div>
+        <div><span class="n num" id="sessDoneSets">–</span><span class="l">Sätze erledigt</span></div>
+      </div>
+      <div class="hint" id="sessDoneNote" style="margin-top:10px;"></div>
+      <button class="btn-primary" id="sessDoneClose">Zurück zur Übersicht</button>
+    </div>
   </div>
 </div>
 
@@ -452,6 +489,21 @@
   };
   const CATS = Object.keys(POOL);
 
+  const WARMUP_POOL = [
+    {name:"Kniebeuge mit Überkopfzug (leicht)", code:"K3", cue:"Locker und dynamisch aus der Hocke die Arme über Kopf strecken, ca. 12–15 Wiederholungen bei sehr leichtem Widerstand."},
+    {name:"Rotationszug diagonal (leicht)", code:"5-0", cue:"Locker von der Seite nach vorne führen und den Rumpf mitdrehen lassen, ca. 12–15 Wiederholungen je Seite."},
+    {name:"Kabel-Kniebeuge (leicht)", code:"6-0", cue:"Zügig, aber kontrolliert in die Hocke gehen und aufrichten, ca. 12–15 Wiederholungen."},
+    {name:"Seitheben (leicht)", code:"4-0", cue:"Arm locker seitlich anheben, ca. 12–15 Wiederholungen je Seite bei sehr leichtem Widerstand."},
+    {name:"Rudern stehend, geradarmig (leicht)", code:"2-8", cue:"Arme gestreckt locker nach hinten führen, ca. 12–15 Wiederholungen, oberen Rücken aktivieren."}
+  ];
+  const COOLDOWN_POOL = [
+    {name:"Seitdehnung am Kabel (Trizeps/Lat)", code:"3-5", cue:"Griff über Kopf, Oberkörper sanft zur Seite neigen und 20–30 Sekunden halten. Seite wechseln."},
+    {name:"Seitliche Rumpfdehnung am Kabel", code:"5-3", cue:"Seitlich zum Zug stehen, Oberkörper sanft zur Seite neigen und 20–30 Sekunden halten."},
+    {name:"Brustöffner-Dehnung am Kabel", code:"1-9", cue:"Arme bei leichtem Zug weit geöffnet halten, Brust bewusst öffnen und 20–30 Sekunden halten."},
+    {name:"Schulter-/Rückendehnung am Kabel", code:"2-11", cue:"Arme seitlich bei leichtem Zug nach hinten führen und die Position 20–30 Sekunden halten."}
+  ];
+  const WARMUP_COUNT = 3, COOLDOWN_COUNT = 3;
+
   const PROFILES = {
     mann: {label:"Mann", age:50, height:178, weight:80},
     frau: {label:"Frau", age:45, height:168, weight:60}
@@ -555,6 +607,30 @@
     return Math.max(3, Math.min(10, n));
   }
   function kcalForDay(phase, weightKg, durationMinutes){ return (MET_BY_PHASE[phase]*3.5*weightKg/200)*durationMinutes; }
+
+  // Gewichts-berücksichtigte Kalorienschätzung: vergleicht die diesmal eingetragenen effektiven kg
+  // je Übung mit dem bisherigen Durchschnitt derselben Übung im eigenen Verlauf und passt den
+  // MET-Wert leicht an (±15%). Ohne Verlaufsdaten bleibt es bei der reinen Phasen-Schätzung.
+  function computeActualKcal(phase, bodyWeightKg, durationMinutes, exercisesData){
+    const hist = state[currentProfile].history;
+    const ratios = [];
+    exercisesData.forEach(x => {
+      if (!x.weightKg) return;
+      const past = [];
+      hist.forEach(h => h.exercises.forEach(e => { if (e.code===x.code && e.weightKg) past.push(e.weightKg); }));
+      if (past.length){
+        const avgPast = past.reduce((a,b)=>a+b,0)/past.length;
+        if (avgPast>0) ratios.push(x.weightKg/avgPast);
+      }
+    });
+    let factor = 1, hasRef = ratios.length>0;
+    if (hasRef){
+      const avgRatio = ratios.reduce((a,b)=>a+b,0)/ratios.length;
+      factor = Math.max(0.85, Math.min(1.15, avgRatio));
+    }
+    const met = MET_BY_PHASE[phase] * factor;
+    return {kcal: Math.round(met*3.5*bodyWeightKg/200*durationMinutes), factor, hasRef};
+  }
   function esc(s){ return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
 
   // ---------- Setup-Erkennung (für Umbauten-Minimierung) & Zug-Typ (für Plattenrechner) ----------
@@ -603,7 +679,9 @@
         const durationSec = dayDurationSeconds(scheme, exercises.length);
         const durationMin = Math.round(durationSec/60);
         const kcal = Math.round(kcalForDay(phase, opts.weightKg, durationMin));
-        return {label: dayLabel(cats), exercises, durationMin, kcal};
+        const warmup = shuffle(WARMUP_POOL.slice()).slice(0, WARMUP_COUNT);
+        const cooldown = shuffle(COOLDOWN_POOL.slice()).slice(0, COOLDOWN_COUNT);
+        return {label: dayLabel(cats), exercises, durationMin, kcal, warmup, cooldown};
       });
       weeks.push({index:w, phase, days});
     }
@@ -643,6 +721,21 @@
   }
 
   // ---------- Rendern ----------
+  function renderSubSection(title, items, totalSec, isHold){
+    const wrap = document.createElement("div");
+    wrap.className = "sub-section" + (isHold ? " cooldown" : "");
+    const perSec = Math.round(totalSec/items.length);
+    const timeLabel = isHold ? "~"+perSec+" Sek. halten" : "~"+Math.round(perSec/60*10)/10+" Min.";
+    let inner = '<div class="sub-section-title">'+title+'</div>';
+    items.forEach(it => {
+      inner += '<div class="sub-ex"><div class="sub-ex-main"><div class="sub-ex-name">'+esc(it.name)+'</div>'+
+        '<div class="sub-ex-cue">'+esc(it.cue)+' · '+timeLabel+'</div></div>'+
+        '<a class="ex-video" href="'+VIDEO_BASE+esc(it.code)+'.mp4">🎬</a></div>';
+    });
+    wrap.innerHTML = inner;
+    return wrap;
+  }
+
   function renderProgram(weeks){
     const container = document.getElementById("program");
     container.innerHTML = "";
@@ -674,6 +767,8 @@
         startBtn.dataset.week = week.index; startBtn.dataset.day = di;
         dBody.appendChild(startBtn);
 
+        dBody.appendChild(renderSubSection("🔥 Aufwärmen (mit Gerät)", day.warmup, WARMUP_SEC, false));
+
         day.exercises.forEach((ex, ei) => {
           const row = document.createElement("div");
           row.className = "ex";
@@ -698,6 +793,8 @@
             '<a class="ex-video" href="'+VIDEO_BASE+esc(ex.code)+'.mp4">🎬 Video</a>';
           dBody.appendChild(row);
         });
+
+        dBody.appendChild(renderSubSection("🧊 Cool-down (Dehnung)", day.cooldown, COOLDOWN_SEC, true));
 
         const footer = document.createElement("div");
         footer.className = "day-footer";
@@ -769,6 +866,14 @@
 
   // ---------- Session (geführte Einheit) ----------
   let session = null;
+  function renderSessSubList(containerId, items){
+    const wrap = document.getElementById(containerId);
+    wrap.innerHTML = items.map(it =>
+      '<div class="sub-ex"><div class="sub-ex-main"><div class="sub-ex-name">'+esc(it.name)+'</div>'+
+      '<div class="sub-ex-cue">'+esc(it.cue)+'</div></div>'+
+      '<a class="ex-video" href="'+VIDEO_BASE+esc(it.code)+'.mp4">🎬</a></div>'
+    ).join("");
+  }
   function startSession(weekIndex, dayIndex){
     const week = state[currentProfile].program[weekIndex];
     const day = week.days[dayIndex];
@@ -782,11 +887,22 @@
       plannedSec: day.durationMin*60
     };
     document.getElementById("sessDayTitle").textContent = "Tag "+(dayIndex+1)+" — "+day.label;
+    renderSessSubList("sessWarmupList", day.warmup);
+    renderSessSubList("sessCooldownList", day.cooldown);
+    document.getElementById("sessWarmupView").hidden = false;
+    document.getElementById("sessExerciseView").hidden = true;
+    document.getElementById("sessCooldownView").hidden = true;
+    document.getElementById("sessDoneView").hidden = true;
     renderSessionExercise();
     document.getElementById("sessionOverlay").hidden = false;
     session.timerId = setInterval(updateSessionTimer, 1000);
     updateSessionTimer();
   }
+  document.getElementById("sessWarmupNext").addEventListener("click", () => {
+    document.getElementById("sessWarmupView").hidden = true;
+    document.getElementById("sessExerciseView").hidden = false;
+  });
+  document.getElementById("sessFinishFromCooldown").addEventListener("click", finishSession);
   function updateSessionTimer(){
     if(!session) return;
     const elapsedSec = Math.round((Date.now()-session.startTime)/1000);
@@ -832,13 +948,29 @@
     const sugg = val ? kgFromPlates(parseFloat(val), inferPull(ex), state[currentProfile].ratio) : null;
     hint.textContent = sugg ? ("→ "+sugg.kg+" kg effektiv am Griff ("+sugg.stack+" kg Stapel bei "+state[currentProfile].ratio+")") : "";
   }
+  document.getElementById("sessSwapBtn").addEventListener("click", () => {
+    const ex = session.day.exercises[session.exIndex];
+    const cat = ex.cat;
+    const usedCodes = new Set(session.day.exercises.map(e => e.code));
+    let candidates = POOL[cat].filter(e => e.code !== ex.code && !usedCodes.has(e.code));
+    if (!candidates.length) candidates = POOL[cat].filter(e => e.code !== ex.code);
+    if (!candidates.length) return;
+    const newEx = candidates[Math.floor(Math.random()*candidates.length)];
+    session.day.exercises[session.exIndex] = {cat, name:newEx.name, code:newEx.code, cue:newEx.cue};
+    session.setsDone[session.exIndex] = 0;
+    session.weightsLogged[session.exIndex] = state[currentProfile].weights[newEx.code] || "";
+    renderSessionExercise();
+  });
   document.getElementById("sessWeightInput").addEventListener("input", (e) => {
     session.weightsLogged[session.exIndex] = e.target.value;
     updateSessPlateHint();
   });
   document.getElementById("sessNext").addEventListener("click", () => {
     if (session.exIndex < session.day.exercises.length-1){ session.exIndex++; renderSessionExercise(); }
-    else { finishSession(); }
+    else {
+      document.getElementById("sessExerciseView").hidden = true;
+      document.getElementById("sessCooldownView").hidden = false;
+    }
   });
   document.getElementById("sessPrev").addEventListener("click", () => {
     if (session.exIndex > 0){ session.exIndex--; renderSessionExercise(); }
@@ -853,32 +985,49 @@
   function finishSession(){
     clearInterval(session.timerId);
     const elapsedSec = Math.round((Date.now()-session.startTime)/1000);
+    const durationActualMin = Math.max(1, Math.round(elapsedSec/60));
+    const exercisesData = session.day.exercises.map((ex,i) => {
+      const plates = session.weightsLogged[i] || null;
+      const kgInfo = plates ? kgFromPlates(parseFloat(plates), inferPull(ex), state[currentProfile].ratio) : null;
+      return {name: ex.name, code: ex.code, cat: ex.cat, setsCompleted: session.setsDone[i], plates: plates, weightKg: kgInfo ? kgInfo.kg : null};
+    });
+    const phase = state[currentProfile].program[session.weekIndex].phase;
+    const kcalInfo = computeActualKcal(phase, PROFILES[currentProfile].weight, durationActualMin, exercisesData);
     const record = {
       date: new Date().toISOString(),
       dayLabel: session.day.label,
-      durationActualMin: Math.max(1, Math.round(elapsedSec/60)),
-      kcal: session.day.kcal,
-      exercises: session.day.exercises.map((ex,i) => {
-        const plates = session.weightsLogged[i] || null;
-        const kgInfo = plates ? kgFromPlates(parseFloat(plates), inferPull(ex), state[currentProfile].ratio) : null;
-        return {
-          name: ex.name, code: ex.code, cat: ex.cat,
-          setsCompleted: session.setsDone[i],
-          plates: plates,
-          weightKg: kgInfo ? kgInfo.kg : null
-        };
-      })
+      durationActualMin: durationActualMin,
+      kcal: kcalInfo.kcal,
+      exercises: exercisesData
     };
     state[currentProfile].history.unshift(record);
     session.day.exercises.forEach((ex,i) => {
       if (session.weightsLogged[i]) state[currentProfile].weights[ex.code] = session.weightsLogged[i];
     });
     saveState();
-    session = null;
-    document.getElementById("sessionOverlay").hidden = true;
+
+    const totalSets = exercisesData.reduce((a,x) => a+x.setsCompleted, 0);
+    document.getElementById("sessDoneTime").textContent = durationActualMin;
+    document.getElementById("sessDoneKcal").textContent = kcalInfo.kcal;
+    document.getElementById("sessDoneSets").textContent = totalSets;
+    document.getElementById("sessDoneNote").textContent = kcalInfo.hasRef
+      ? "Kalorien unter Berücksichtigung deiner eingetragenen Gewichte im Vergleich zu früheren Einheiten geschätzt."
+      : "Kalorien nach Trainingsphase geschätzt — mit mehr Verlauf berücksichtigt die Schätzung künftig auch deine Gewichtsentwicklung.";
+    document.getElementById("sessExerciseView").hidden = true;
+    document.getElementById("sessCooldownView").hidden = true;
+    document.getElementById("sessDoneView").hidden = false;
+
     renderHistory();
     renderProgram(state[currentProfile].program);
   }
+  document.getElementById("sessDoneClose").addEventListener("click", () => {
+    session = null;
+    document.getElementById("sessionOverlay").hidden = true;
+    document.getElementById("sessWarmupView").hidden = false;
+    document.getElementById("sessExerciseView").hidden = true;
+    document.getElementById("sessCooldownView").hidden = true;
+    document.getElementById("sessDoneView").hidden = true;
+  });
 
   // ---------- UI wiring ----------
   const profileSegEl = document.getElementById("profileSeg");
