@@ -1,0 +1,1007 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>SlimBeam Trainingsplaner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#FAF8F4; --surface:#FFFFFF; --border:#E4DFD5;
+    --ink:#221D16; --ink-muted:#6E6558;
+    --wood:#AD7A42; --wood-dark:#7C5530; --wood-tint:#F1E4D2;
+    --moss:#48583F; --moss-tint:#E7ECE1;
+    --danger:#A2402F; --deload:#9A9182; --deload-tint:#EFEDE7;
+    --radius-s:4px; --radius-m:10px;
+    --safe-b: env(safe-area-inset-bottom, 0px);
+  }
+  *{box-sizing:border-box;}
+  html{-webkit-text-size-adjust:100%;}
+  body{margin:0; background:var(--bg); color:var(--ink); font-family:'Inter',system-ui,-apple-system,sans-serif; font-size:16px; line-height:1.45; -webkit-font-smoothing:antialiased; padding-bottom:calc(24px + var(--safe-b));}
+  h1,h2,h3{font-family:'Fraunces',Georgia,serif; font-weight:600; margin:0; color:var(--ink); letter-spacing:-0.01em;}
+  .num{font-variant-numeric:tabular-nums;}
+  a{color:var(--wood-dark);}
+  button{font-family:inherit;}
+
+  header{position:sticky; top:0; z-index:20; background:var(--bg); border-bottom:1px solid var(--border); padding:14px 18px 12px;}
+  header h1{font-size:22px;}
+  header .tag{font-size:12.5px; color:var(--ink-muted); margin-top:2px;}
+  header .source{margin-top:4px; font-size:12px; color:var(--ink-muted);}
+  header .source a{color:var(--ink-muted); text-decoration-color:var(--border);}
+
+  main{max-width:640px; margin:0 auto; padding:0 16px;}
+
+  .panel{background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-m); margin-top:16px; overflow:hidden;}
+  .panel > summary{list-style:none; cursor:pointer; padding:14px 16px; display:flex; align-items:center; justify-content:space-between; font-family:'Fraunces',serif; font-weight:600; font-size:16px;}
+  .panel > summary::-webkit-details-marker{display:none;}
+  .panel > summary .chev{font-size:13px; color:var(--ink-muted); transition:transform .18s ease; font-family:'Inter',sans-serif; font-weight:500;}
+  .panel[open] > summary .chev{transform:rotate(180deg);}
+  .setup-body{padding:2px 16px 18px;}
+  .panel-body{padding:0 16px 18px;}
+
+  fieldset{border:0; margin:0 0 18px; padding:0;}
+  legend{font-size:13px; font-weight:600; color:var(--ink); margin-bottom:8px; padding:0;}
+  .hint{font-size:12.5px; color:var(--ink-muted); margin:2px 0 10px;}
+
+  .chips{display:flex; flex-wrap:wrap; gap:8px;}
+  .chip-input{position:absolute; opacity:0; width:1px; height:1px;}
+  .chip{display:inline-flex; align-items:center; padding:9px 14px; min-height:38px; border:1px solid var(--border); border-radius:999px; font-size:14px; font-weight:500; color:var(--ink); cursor:pointer; background:var(--surface); transition:background .12s ease, color .12s ease, border-color .12s ease; user-select:none;}
+  .chip-input:checked + .chip{background:var(--wood); border-color:var(--wood); color:#fff;}
+  .chip-input:focus-visible + .chip{outline:2px solid var(--wood-dark); outline-offset:2px;}
+
+  .segmented{display:flex; border:1px solid var(--border); border-radius:var(--radius-s); overflow:hidden;}
+  .seg-input{position:absolute; opacity:0; width:1px; height:1px;}
+  .seg{flex:1; text-align:center; padding:10px 6px; font-size:13.5px; font-weight:500; color:var(--ink-muted); cursor:pointer; border-left:1px solid var(--border);}
+  .seg:first-of-type{border-left:0;}
+  .seg-input:checked + .seg{background:var(--moss); color:#fff;}
+  .seg-input:focus-visible + .seg{outline:2px solid var(--wood-dark); outline-offset:-2px;}
+
+  .profile-seg .seg{display:flex; flex-direction:column; gap:2px; padding:9px 6px;}
+  .profile-seg .seg-name{font-size:14px; font-weight:600; color:inherit;}
+  .profile-seg .seg-stats{font-size:11px; color:inherit; opacity:.75; font-weight:400;}
+
+  .row-fields{display:flex; gap:12px;}
+  .field{flex:1;}
+  .stepper{display:flex; align-items:center; border:1px solid var(--border); border-radius:var(--radius-s); overflow:hidden;}
+  .stepper button{width:42px; height:42px; border:0; background:var(--surface); font-size:18px; color:var(--wood-dark); cursor:pointer;}
+  .stepper button:active{background:var(--wood-tint);}
+  .stepper output{flex:1; text-align:center; font-weight:600; font-size:15px;}
+  select{width:100%; height:42px; border:1px solid var(--border); border-radius:var(--radius-s); background:var(--surface); font-size:15px; color:var(--ink); padding:0 10px; font-family:'Inter',sans-serif;}
+
+  .btn-primary{display:block; width:100%; padding:15px 16px; background:var(--wood-dark); color:#fff; border:0; border-radius:var(--radius-s); font-family:'Inter',sans-serif; font-size:15.5px; font-weight:600; letter-spacing:0.01em; cursor:pointer; min-height:48px;}
+  .btn-primary:active{background:#63431F;}
+  .btn-secondary{display:block; width:100%; padding:13px 16px; margin-top:10px; background:transparent; color:var(--wood-dark); border:1px solid var(--wood-dark); border-radius:var(--radius-s); font-family:'Inter',sans-serif; font-size:14.5px; font-weight:600; cursor:pointer; min-height:46px;}
+  .btn-secondary:active{background:var(--wood-tint);}
+
+  .summary{margin-top:18px; display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:var(--border); border:1px solid var(--border); border-radius:var(--radius-m) var(--radius-m) 0 0; overflow:hidden;}
+  .summary div{background:var(--surface); padding:12px 10px; text-align:center;}
+  .summary .n{display:block; font-family:'Fraunces',serif; font-size:22px; font-weight:600;}
+  .summary .l{display:block; font-size:11px; color:var(--ink-muted); margin-top:2px;}
+  .summary-2{display:grid; grid-template-columns:repeat(2,1fr); gap:1px; background:var(--border); border:1px solid var(--border); border-top:0; border-radius:0 0 var(--radius-m) var(--radius-m); overflow:hidden;}
+  .summary-2 div{background:var(--surface); padding:12px 10px; text-align:center;}
+  .summary-2 .n{display:block; font-family:'Fraunces',serif; font-size:20px; font-weight:600; color:var(--wood-dark);}
+  .summary-2 .l{display:block; font-size:11px; color:var(--ink-muted); margin-top:2px;}
+
+  .profile-line{margin-top:2px; margin-bottom:10px; font-size:13px; color:var(--ink-muted);}
+  .profile-line b{color:var(--ink);}
+  .focus-line{margin-top:10px; font-size:13px; color:var(--ink-muted);}
+  .focus-line b{color:var(--moss); font-weight:600;}
+
+  .time-row{margin-top:12px;}
+  .time-row .hint{margin-bottom:8px;}
+  .time-buttons{display:flex; gap:8px; flex-wrap:wrap;}
+  .time-btn{flex:1 1 auto; min-width:64px; min-height:40px; padding:9px 10px; border:1px solid var(--border); border-radius:999px; background:var(--surface); color:var(--ink); font-size:13.5px; font-weight:600; font-family:'Inter',sans-serif; cursor:pointer;}
+  .time-btn.active{background:var(--moss); border-color:var(--moss); color:#fff;}
+  .time-btn:active{background:var(--wood-tint);}
+
+  #program{margin-top:20px;}
+  .empty{text-align:center; padding:40px 20px; color:var(--ink-muted); font-size:14px;}
+
+  .week{border:1px solid var(--border); border-radius:var(--radius-m); margin-bottom:12px; background:var(--surface); overflow:hidden;}
+  .week > summary{list-style:none; cursor:pointer; padding:13px 15px; display:flex; align-items:center; justify-content:space-between; gap:10px;}
+  .week > summary::-webkit-details-marker{display:none;}
+  .week-title{display:flex; align-items:baseline; gap:9px;}
+  .week-title .wn{font-family:'Fraunces',serif; font-weight:600; font-size:17px;}
+  .phase-tag{font-size:11px; font-weight:600; padding:3px 9px; border-radius:999px;}
+  .phase-grundlagen{background:var(--moss-tint); color:var(--moss);}
+  .phase-aufbau{background:var(--wood-tint); color:var(--wood-dark);}
+  .phase-kraft{background:#F3E1DB; color:var(--danger);}
+  .phase-deload{background:var(--deload-tint); color:var(--deload);}
+  .week > summary .chev{color:var(--ink-muted); font-size:13px; transition:transform .18s ease;}
+  .week[open] > summary .chev{transform:rotate(180deg);}
+  .week-body{padding:0 12px 12px;}
+
+  .day{border:1px solid var(--border); border-radius:var(--radius-s); margin-top:8px; background:var(--bg);}
+  .day > summary{list-style:none; cursor:pointer; padding:10px 12px; display:flex; align-items:center; justify-content:space-between; gap:8px;}
+  .day > summary::-webkit-details-marker{display:none;}
+  .day-title{font-size:14px; font-weight:600;}
+  .day-sub{font-size:11.5px; color:var(--ink-muted); font-weight:400; margin-left:6px;}
+  .day > summary .chev{color:var(--ink-muted); font-size:12px; transition:transform .18s ease;}
+  .day[open] > summary .chev{transform:rotate(180deg);}
+  .day-body{padding:0 12px 10px;}
+  .day-start{display:block; width:100%; margin:8px 0 4px; padding:10px; border:1px solid var(--moss); border-radius:var(--radius-s); background:var(--moss-tint); color:var(--moss); font-weight:600; font-size:13px; cursor:pointer;}
+  .day-start:active{background:var(--moss); color:#fff;}
+
+  .ex{display:flex; gap:10px; padding:9px 0; border-top:1px solid var(--border); align-items:flex-start;}
+  .ex:first-child{border-top:0;}
+  .ex-n{flex:0 0 20px; font-size:12.5px; color:var(--ink-muted); padding-top:2px;}
+  .ex-main{flex:1; min-width:0;}
+  .ex-name{font-size:14px; font-weight:600; color:var(--ink);}
+  .ex-cue{font-size:12.5px; color:var(--ink-muted); margin-top:2px;}
+  .ex-meta{display:flex; flex-wrap:wrap; gap:10px; margin-top:6px; font-size:12.5px; color:var(--ink);}
+  .ex-meta span{white-space:nowrap;}
+  .ex-meta b{font-variant-numeric:tabular-nums;}
+  .ex-video{flex:0 0 auto; align-self:center; padding:8px 11px; border:1px solid var(--wood); border-radius:999px; color:var(--wood-dark); background:transparent; font-family:'Inter',sans-serif; font-size:12.5px; font-weight:600; min-height:36px; cursor:pointer; text-decoration:none;}
+  .ex-video:active{background:var(--wood-tint);}
+
+  .ex-weight-row{display:flex; align-items:center; gap:8px; margin-top:8px; flex-wrap:wrap;}
+  .ex-weight-row label{font-size:11.5px; color:var(--ink-muted); display:flex; align-items:center; gap:6px;}
+  .ex-weight-input{width:70px; height:32px; border:1px solid var(--border); border-radius:var(--radius-s); padding:0 8px; font-size:13px; font-family:'Inter',sans-serif;}
+  .plate-hint{font-size:11.5px; color:var(--wood-dark); font-weight:500;}
+
+  .day-footer{display:flex; gap:14px; margin-top:4px; padding-top:8px; border-top:1px solid var(--border); font-size:12.5px; color:var(--ink-muted);}
+  .day-footer b{color:var(--ink);}
+
+  .method-note{margin-top:18px; padding:14px 15px; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-m); font-size:12.5px; color:var(--ink-muted); line-height:1.55;}
+  .method-note h3{font-size:14px; margin-bottom:6px; color:var(--ink);}
+  .method-note p{margin:0 0 8px;}
+  .method-note p:last-child{margin-bottom:0;}
+
+  /* Verlauf */
+  .hist-item{padding:10px 0; border-top:1px solid var(--border); font-size:13px;}
+  .hist-item:first-child{border-top:0;}
+  .hist-date{font-weight:600;}
+  .hist-meta{color:var(--ink-muted); font-size:12px; margin-top:2px;}
+  .hist-ex{color:var(--ink-muted); font-size:11.5px; margin-top:4px; line-height:1.5;}
+
+  /* Session Overlay */
+  #sessionOverlay{position:fixed; inset:0; background:var(--bg); z-index:100; display:flex; flex-direction:column; overflow-y:auto;}
+  #sessionOverlay[hidden]{display:none;}
+  .sess-header{position:sticky; top:0; background:var(--bg); border-bottom:1px solid var(--border); padding:14px 16px; display:flex; align-items:center; justify-content:space-between;}
+  .sess-close{border:0; background:none; font-size:22px; color:var(--ink-muted); cursor:pointer; padding:4px 8px;}
+  .sess-timers{display:flex; gap:1px; background:var(--border); border-top:1px solid var(--border);}
+  .sess-timers div{flex:1; background:var(--surface); text-align:center; padding:10px; }
+  .sess-timers .n{display:block; font-family:'Fraunces',serif; font-size:20px; font-weight:600;}
+  .sess-timers .l{display:block; font-size:11px; color:var(--ink-muted);}
+  .sess-progress{height:4px; background:var(--border);}
+  .sess-progress-bar{height:100%; background:var(--moss); transition:width .2s ease;}
+  .sess-body{padding:20px 16px; max-width:520px; margin:0 auto; width:100%;}
+  .sess-cat{font-size:12px; color:var(--wood-dark); font-weight:600; text-transform:uppercase; letter-spacing:.03em;}
+  .sess-name{font-size:22px; margin-top:4px;}
+  .sess-cue{font-size:14px; color:var(--ink-muted); margin-top:8px; line-height:1.5;}
+  .sess-target{margin-top:14px; font-size:13px; color:var(--ink);}
+  .sess-sets{display:flex; gap:8px; margin-top:12px; flex-wrap:wrap;}
+  .sess-set-btn{width:48px; height:48px; border-radius:50%; border:2px solid var(--border); background:var(--surface); font-weight:700; font-size:15px; color:var(--ink-muted); cursor:pointer;}
+  .sess-set-btn.done{background:var(--moss); border-color:var(--moss); color:#fff;}
+  .sess-weight{margin-top:18px;}
+  .sess-weight label{font-size:12.5px; color:var(--ink-muted); display:block; margin-bottom:6px;}
+  .sess-weight input{width:100%; height:44px; border:1px solid var(--border); border-radius:var(--radius-s); padding:0 12px; font-size:15px;}
+  .sess-plate{font-size:12px; color:var(--wood-dark); margin-top:6px;}
+  .sess-nav{display:flex; gap:10px; margin-top:22px;}
+  .sess-nav button{flex:1;}
+  .btn-ghost{background:transparent; border:1px solid var(--border); color:var(--ink); border-radius:var(--radius-s); padding:13px; font-weight:600; font-size:14px; cursor:pointer;}
+
+  @media (prefers-reduced-motion: reduce){ .chev{transition:none !important;} }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>SlimBeam Trainingsplaner</h1>
+  <div class="tag">Individuelle, periodisierte Trainingsprogramme für den NOHRD SlimBeam</div>
+  <div class="source">Kapitel- und Video-Struktur aus dem offiziellen <a href="https://www.nohrd.com/pub/media/pdf/slimbeam/slimbeam-trainingsbuch.pdf">SlimBeam Trainingshandbuch</a></div>
+</header>
+
+<main>
+
+  <details class="panel" id="setupPanel" open>
+    <summary>Einstellungen <span class="chev">▾</span></summary>
+    <div class="setup-body">
+
+      <fieldset>
+        <legend>Profil</legend>
+        <div class="hint">Jedes Profil merkt sich eigene Einstellungen, Gewichte und Verlauf.</div>
+        <div class="segmented profile-seg" id="profileSeg"></div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Fokusbereiche</legend>
+        <div class="hint">Nach den echten Handbuch-Kapiteln. Mehrfachauswahl möglich.</div>
+        <div class="chips" id="focusChips"></div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Trainingslevel</legend>
+        <div class="segmented" id="levelSeg"></div>
+      </fieldset>
+
+      <fieldset>
+        <div class="row-fields">
+          <div class="field">
+            <legend>Tage / Woche</legend>
+            <div class="stepper">
+              <button type="button" id="daysMinus" aria-label="weniger">−</button>
+              <output id="daysOut">3</output>
+              <button type="button" id="daysPlus" aria-label="mehr">+</button>
+            </div>
+          </div>
+          <div class="field">
+            <legend>Programmdauer</legend>
+            <select id="weeksSelect">
+              <option value="4">4 Wochen</option>
+              <option value="6" selected>6 Wochen</option>
+              <option value="8">8 Wochen</option>
+              <option value="12">12 Wochen</option>
+            </select>
+          </div>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>SlimBeam-Übersetzung</legend>
+        <div class="hint">Für die Plattenempfehlung. Standard ab Werk: 3:1.</div>
+        <div class="segmented" id="ratioSeg"></div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Übungsreihenfolge</legend>
+        <div class="chips">
+          <input type="checkbox" class="chip-input" id="minimizeChip" checked>
+          <label class="chip" for="minimizeChip">Umbauten am Gerät minimieren</label>
+        </div>
+        <div class="hint">Ordnet Übungen innerhalb eines Tages so, dass Griff/Anbauteil möglichst selten gewechselt werden muss (grobe Schätzung anhand der Übungsbeschreibung).</div>
+      </fieldset>
+
+      <button class="btn-primary" id="generateBtn">Trainingsprogramm erstellen</button>
+    </div>
+  </details>
+
+  <details class="panel" id="historyPanel">
+    <summary>📖 Verlauf <span class="chev">▾</span></summary>
+    <div class="panel-body">
+      <div id="historyList"><div class="hint">Noch keine Einheiten abgeschlossen.</div></div>
+      <button class="btn-secondary" id="exportBtn">Verlauf exportieren (CSV)</button>
+      <div class="hint" style="margin-top:8px;">Kein direkter Apple-Health-Zugriff möglich (nur echte Apps dürfen das) — die CSV kannst du manuell auswerten oder in eine andere App importieren.</div>
+    </div>
+  </details>
+
+  <div id="summaryBox" style="display:none;">
+    <div class="profile-line" id="profileLine"></div>
+    <div class="summary">
+      <div><span class="n num" id="sumSessions">–</span><span class="l">Einheiten</span></div>
+      <div><span class="n num" id="sumWeeks">–</span><span class="l">Wochen</span></div>
+      <div><span class="n num" id="sumExPerDay">–</span><span class="l">Übungen / Tag</span></div>
+    </div>
+    <div class="summary-2">
+      <div><span class="n num" id="sumDuration">–</span><span class="l">Min. / Einheit (⌀)</span></div>
+      <div><span class="n num" id="sumCalories">–</span><span class="l">kcal / Einheit (⌀)</span></div>
+    </div>
+    <div class="time-row">
+      <div class="hint">Trainingsdauer je Einheit anpassen:</div>
+      <div class="time-buttons" id="timeButtons">
+        <button type="button" class="time-btn" data-min="15">15 Min</button>
+        <button type="button" class="time-btn" data-min="20">20 Min</button>
+        <button type="button" class="time-btn" data-min="30">30 Min</button>
+        <button type="button" class="time-btn" data-min="0">Standard</button>
+      </div>
+    </div>
+    <div class="focus-line" id="focusLine"></div>
+    <button class="btn-secondary" id="regenBtn">Neue Variante mit gleichen Einstellungen</button>
+  </div>
+
+  <div id="program">
+    <div class="empty">Noch kein Programm erstellt.<br>Einstellungen wählen und „Trainingsprogramm erstellen" tippen.</div>
+  </div>
+
+  <div class="method-note">
+    <h3>Zur Methodik</h3>
+    <p>Kategorien nach echten Handbuch-Kapiteln (1 Brust, 2 Rücken, 3 Trizeps, 4 Schultern, 5 Bauch, 6 Beine, K/C/Z Ganzkörper-Varianten). Drei Belastungsphasen (Grundlagen/Aufbau/Kraft), jede 4. Woche Deload. Dauer/Kalorien sind Schätzungen aus Sätzen, Wiederholungen, Pausen sowie Auf-/Abwärmzeit.</p>
+    <p><b>Plattenempfehlung:</b> Beim SlimBeam gilt: effektives Gewicht am Griff = Gewichtsstapel ÷ (Übersetzung × 2 bei Einzelzug, × 1 bei Doppelzug). Bei Werks-Übersetzung 3:1 entspricht der Maximalstapel von 75 kg z. B. 25 kg beim Doppelzug bzw. 12,5 kg beim Einzelzug. Die App rechnet aus deinem eingetragenen Zielgewicht zurück, wie viele 5-kg-Platten (max. 15) zu aktivieren sind — eine Schätzung, keine Herstellerangabe für jede einzelne Übung.</p>
+    <p><b>Verlauf:</b> Wird lokal im Browser gespeichert. Da die Datei lokal (nicht über einen Webserver) geöffnet wird, kann Safari diesen Speicher unter Umständen nicht zuverlässig behalten (z. B. nach Zurücksetzen der Website-Daten) — nutze bei Bedarf „Verlauf exportieren" als Sicherung.</p>
+    <p>Der „🎬 Video"-Button öffnet das Original-Video von NOHRD zur jeweiligen Seite im selben Tab (gleiche Datei wie der QR-Code im Handbuch).</p>
+  </div>
+
+</main>
+
+<div id="sessionOverlay" hidden>
+  <div class="sess-header">
+    <div>
+      <div id="sessDayTitle" style="font-family:'Fraunces',serif; font-weight:600; font-size:16px;"></div>
+      <div id="sessProgress" style="font-size:12px; color:var(--ink-muted);"></div>
+    </div>
+    <button class="sess-close" id="sessClose" aria-label="Schließen">✕</button>
+  </div>
+  <div class="sess-progress"><div class="sess-progress-bar" id="sessProgressBar" style="width:0%;"></div></div>
+  <div class="sess-timers">
+    <div><span class="n num" id="sessElapsed">00:00</span><span class="l">Verstrichen</span></div>
+    <div><span class="n num" id="sessRemaining">–</span><span class="l">Voraussichtlich noch</span></div>
+  </div>
+  <div class="sess-body">
+    <div class="sess-cat" id="sessCat"></div>
+    <div class="sess-name" id="sessName"></div>
+    <div class="sess-cue" id="sessCue"></div>
+    <div class="sess-target" id="sessTarget"></div>
+    <div class="sess-sets" id="sessSets"></div>
+    <div class="sess-weight">
+      <label>Eingestelltes Gewicht (kg, effektiv am Griff)</label>
+      <input type="number" inputmode="decimal" step="0.5" min="0" id="sessWeightInput">
+      <div class="sess-plate" id="sessPlateHint"></div>
+    </div>
+    <div class="sess-nav">
+      <button class="btn-ghost" id="sessPrev">← Zurück</button>
+      <button class="btn-primary" id="sessNext" style="margin-top:0;">Weiter →</button>
+    </div>
+    <button class="btn-secondary" id="sessFinish">Einheit beenden &amp; speichern</button>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  const VIDEO_BASE = "https://www.nohrd.com/pub/media/video/slimbeam/";
+  const STORE_KEY = "slimbeamPlanner_v1";
+
+  const POOL = {
+    "Brust": [
+      {name:"Brustpresse in Schrittstellung", code:"1-0", cue:"Beidarmiger Kabelzug in Schrittstellung auf Brusthöhe nach vorne drücken."},
+      {name:"Brustpresse, enger Griff", code:"1-1", cue:"Griffe eng vor dem Körper führen und nach vorne strecken."},
+      {name:"Brustpresse, tiefer Ausfallschritt", code:"1-2", cue:"Aus tiefem Ausfallschritt beidarmig nach vorne drücken."},
+      {name:"Brustpresse mit Seilgriff", code:"1-3", cue:"Seilgriffe von Brusthöhe kontrolliert nach vorne strecken."},
+      {name:"Schrägzug tief, einarmig", code:"1-4", cue:"Einzelgriff von Hüfthöhe schräg nach vorne-oben drücken."},
+      {name:"Schrägzug mittel, einarmig", code:"1-5", cue:"Einzelgriff von Brusthöhe einarmig nach vorne strecken."},
+      {name:"Einarmige Brustpresse", code:"1-6", cue:"Einzelgriff einarmig von Brusthöhe nach vorne drücken, Rumpf stabil halten."},
+      {name:"Einarmiger Zug mit Seilgriff", code:"1-7", cue:"Seilgriff einarmig von Brusthöhe nach vorne führen."},
+      {name:"Brustpresse vorgebeugt", code:"1-8", cue:"Aus leichter Vorbeuge beidarmig nach vorne drücken."},
+      {name:"Kabel-Butterfly, paralleler Stand", code:"1-9", cue:"Arme aus paralleler Grundstellung auf Brusthöhe nach vorne zusammenführen."},
+      {name:"Schrägzug tief-hoch", code:"1-10", cue:"Zug von unten schräg nach oben über Kopfhöhe führen, betont die obere Brust."},
+      {name:"Einarmiger Crossover", code:"1-11", cue:"Einzelgriff diagonal über den Körper nach vorne-unten führen."}
+    ],
+    "Rücken": [
+      {name:"Geradarmiger Rückenzug", code:"2-0", cue:"Gestreckte Arme aus der Vorbeuge kontrolliert nach hinten zur Hüfte ziehen."},
+      {name:"Rudern vorgebeugt, beidarmig", code:"2-1", cue:"Aus der Vorbeuge beide Griffe zur Hüfte ziehen."},
+      {name:"Rudern vorgebeugt, einarmig", code:"2-2", cue:"Aus der Vorbeuge einarmig zur Hüfte ziehen."},
+      {name:"Rudern tief vorgebeugt", code:"2-3", cue:"Aus tiefer Vorbeuge einarmig zur Hüfte ziehen."},
+      {name:"Rudern über Kopf", code:"2-4", cue:"Griffe von oben nach hinten zur Schulter ziehen, Rumpf leicht zurückgelehnt."},
+      {name:"Rudern über Kopf, einarmig", code:"2-5", cue:"Einzelgriff von oben nach hinten zur Schulter ziehen."},
+      {name:"Latzug sitzend", code:"2-6", cue:"Sitzend Griffe von oben zur Brust ziehen, Schulterblätter aktiv nach unten führen."},
+      {name:"Latzug sitzend, Langstange", code:"2-7", cue:"Sitzend Stange von oben zur Brust ziehen."},
+      {name:"Rudern stehend, geradarmig", code:"2-8", cue:"Arme gestreckt von vorne nach hinten zur Hüfte führen."},
+      {name:"Rudern stehend, breiter Zug", code:"2-9", cue:"Arme seitlich weit ausholend nach hinten ziehen, Schulterblätter zusammenführen."},
+      {name:"Latzug stehend, hinter Kopf", code:"2-10", cue:"Stange von oben hinter den Kopf zur Schulter ziehen."},
+      {name:"Reverse Fly am Kabel", code:"2-11", cue:"Arme seitlich in Schulterhöhe nach hinten führen, betont hintere Schulter und oberen Rücken."},
+      {name:"Rückenstrecker sitzend", code:"2-12", cue:"Sitzend Griffe von oben zur Hüfte ziehen, Rumpf aufrichten."},
+      {name:"Rückenstrecker sitzend, Langstange", code:"2-13", cue:"Sitzend Stange von oben zur Hüfte ziehen, Rumpf aufrichten."},
+      {name:"Rudern sitzend an der Wand", code:"Z4", cue:"Sitzend an der Säule rudernd nach hinten ziehen."}
+    ],
+    "Trizeps": [
+      {name:"Trizepsdrücken einarmig", code:"3-0", cue:"Einzelgriff von oben nach unten strecken, Oberarm bleibt ruhig am Körper."},
+      {name:"Trizepsdrücken einarmig, tief", code:"3-1", cue:"Einzelgriff aus tiefer Position nach unten strecken."},
+      {name:"Trizepsdrücken beidarmig", code:"3-2", cue:"Beide Griffe von Brusthöhe nach unten strecken, Ellbogen fixiert."},
+      {name:"Trizepsdrücken beidarmig, tief", code:"3-3", cue:"Beide Griffe aus tiefer Ausgangsposition nach unten strecken."},
+      {name:"Trizepsdrücken über Kopf", code:"3-4", cue:"Griff von hinten über den Kopf nach unten strecken."},
+      {name:"Trizeps-Seitneige", code:"3-5", cue:"Griff über Kopf, Oberkörper seitlich neigen, Arm gestreckt halten."},
+      {name:"Trizeps-Kickback in Vorbeuge", code:"3-6", cue:"Aus der Vorbeuge den gestreckten Arm kontrolliert nach hinten führen."},
+      {name:"Trizeps-Kickback tief in Vorbeuge", code:"3-7", cue:"Aus tiefer Vorbeuge den gestreckten Arm nach hinten führen."},
+      {name:"Trizepsdrücken sitzend", code:"Z3", cue:"Sitzend am Gerät die Arme nach unten strecken."}
+    ],
+    "Schultern": [
+      {name:"Seitheben am Kabel", code:"4-0", cue:"Arm seitlich von unten bis auf Schulterhöhe anheben."},
+      {name:"Frontheben, beidarmig kurz", code:"4-1", cue:"Beide Arme kurz vor dem Körper anheben."},
+      {name:"Seitheben, Arm über Kopf", code:"4-2", cue:"Arm seitlich bis über Kopfhöhe anheben."},
+      {name:"Frontheben am Kabel", code:"4-3", cue:"Beide Arme von unten nach vorne/oben bis Schulterhöhe anheben."},
+      {name:"Seitheben tief-hoch", code:"4-4", cue:"Arm von tief unten seitlich bis über Kopf anheben."},
+      {name:"Schulterdrücken über Kopf", code:"4-5", cue:"Griffe von Schulterhöhe kontrolliert nach oben drücken."},
+      {name:"Diagonalzug für die Schulter", code:"4-6", cue:"Zug von unten diagonal über den Körper nach oben führen."},
+      {name:"Diagonalzug, weiter Radius", code:"4-7", cue:"Zug von unten diagonal weit nach oben-außen führen."},
+      {name:"Schulterdrücken über Kopf, Seilgriff", code:"4-8", cue:"Seilgriff von der Schulter über Kopf nach oben strecken."},
+      {name:"Schulterheben (Shrug)", code:"4-9", cue:"Schultern gegen den Widerstand gerade nach oben ziehen."}
+    ],
+    "Bauch": [
+      {name:"Rotationszug diagonal", code:"5-0", cue:"Griff von der Seite diagonal vor dem Körper nach vorne führen, Rumpf kontrolliert mitdrehen lassen."},
+      {name:"Holzhacker-Zug (Woodchop)", code:"5-1", cue:"Aus der Vorbeuge diagonal von unten nach oben über den Körper ziehen."},
+      {name:"Kniender Crunch am Kabel", code:"5-2", cue:"Sitzend den Oberkörper gegen den Widerstand einrollen."},
+      {name:"Seitliche Rumpfbeuge am Kabel", code:"5-3", cue:"Seitlich zum Zug stehen und den Oberkörper kontrolliert zur Seite neigen."},
+      {name:"Rumpfdrehung stehend", code:"5-4", cue:"Stehend den Oberkörper gegen den Kabelwiderstand kontrolliert rotieren."},
+      {name:"Pallof-Press-Variante", code:"5-5", cue:"Seitlich zum Zug stehen, Griff gerade vom Körper wegdrücken, Rotation aktiv verhindern."},
+      {name:"Crunch liegend mit Fußschlaufen", code:"Z8", cue:"Liegend die Knie gegen den Widerstand zur Brust ziehen."},
+      {name:"Crunch aufrecht mit Fußschlaufen", code:"Z9", cue:"Liegend mit angewinkelten Beinen den Oberkörper einrollen."},
+      {name:"Beinheben liegend", code:"Z10", cue:"Liegend die gestreckten Beine gegen den Widerstand nach oben führen."},
+      {name:"Beinheben liegend, Variante", code:"Z11", cue:"Liegend die Beine kontrolliert anheben und absenken."},
+      {name:"Reverse Crunch", code:"Z12", cue:"Liegend das Becken gegen den Widerstand aufrollen."}
+    ],
+    "Beine": [
+      {name:"Kabel-Kniebeuge", code:"6-0", cue:"Griff vor der Brust halten, in die Hocke gehen und wieder aufrichten."},
+      {name:"Ausfallschritt am Kabel", code:"6-1", cue:"Aus dem Stand in einen tiefen Ausfallschritt gehen, Knie kontrolliert absenken."},
+      {name:"Kniender Ausfallschritt am Kabel", code:"6-2", cue:"Aus dem Kniestand in den Ausfallschritt nach vorne wechseln."},
+      {name:"Ausfallschritt mit Armzug", code:"6-3", cue:"Ausfallschritt kombiniert mit einer Zugbewegung der Arme."},
+      {name:"Kniebeuge tief", code:"6-4", cue:"Tiefe Hocke am Kabel, Fersen bleiben am Boden."},
+      {name:"Wadenheben am Kabel", code:"6-5", cue:"Auf die Fußballen heben und kontrolliert wieder absenken."},
+      {name:"Ausfallschritt mit Beinschwung", code:"Z1", cue:"Im Ausfallschritt das hintere Bein kontrolliert nach vorne schwingen."},
+      {name:"Ausfallschritt mit Beinschwung und Armzug", code:"Z2", cue:"Ausfallschritt mit Beinschwung kombiniert mit ziehender Armbewegung."},
+      {name:"Standwaage mit Beinabduktion", code:"Z5", cue:"Stehend das gestreckte Bein seitlich vom Körper wegführen."},
+      {name:"Beinabduktion seitlich, Fußschlaufe", code:"Z6", cue:"Fußschlaufe, Bein seitlich vom Körper wegführen, Rumpf stabil halten."},
+      {name:"Hüftabduktion seitlich", code:"Z7", cue:"Stehend das Bein seitlich anheben, Oberkörper aufrecht halten."}
+    ],
+    "Ganzkörper": [
+      {name:"Ausfallschritt mit Armzug (Ganzkörper)", code:"K1", cue:"Ausfallschritt in die Knie kombiniert mit einer ziehenden Armbewegung."},
+      {name:"Ausfallschritt mit Rotationszug", code:"K2", cue:"Ausfallschritt kombiniert mit einer diagonalen Zugbewegung der Arme."},
+      {name:"Kniebeuge mit Überkopfzug", code:"K3", cue:"Aus der Hocke die Arme über Kopf strecken (Squat-to-Press-Prinzip)."},
+      {name:"Ausfallschritt mit Überkopfdrücken", code:"K4", cue:"Ausfallschritt kombiniert mit beidarmigem Drücken über den Kopf."},
+      {name:"Tiefe Kniebeuge mit Überkopfzug", code:"K5", cue:"Aus tiefer Hocke die Arme seitlich über Kopf führen."},
+      {name:"Rumpfzug im Stand auf Balance-Pad", code:"C1", cue:"Auf instabilem Untergrund stehend einen geraden Kabelzug ausführen, Rumpf stabilisieren."},
+      {name:"Rudern im Ausfallschritt auf Balance-Pad", code:"C2", cue:"Auf instabilem Untergrund im Ausfallschritt rudern."},
+      {name:"Seitzug im Ausfallschritt auf Balance-Pad", code:"C3", cue:"Auf instabilem Untergrund im Ausfallschritt seitlich ziehen."},
+      {name:"Brustpresse im Ausfallschritt auf Balance-Pad", code:"C4", cue:"Auf instabilem Untergrund im Ausfallschritt drücken."},
+      {name:"Kniebeuge mit Armzug auf Balance-Pad", code:"C5", cue:"Auf instabilem Untergrund in die Hocke gehen und gleichzeitig ziehen."},
+      {name:"Klimmzug an der Stange", code:"Z13", cue:"Schulterbreiter Griff, Körper kontrolliert nach oben ziehen."},
+      {name:"Klimmzug mit angewinkelten Beinen", code:"Z14", cue:"Klimmzug mit angehockten Beinen, Körper nach oben ziehen."},
+      {name:"Klimmzug mit Beinhub", code:"Z15", cue:"Klimmzug kombiniert mit gestrecktem Beinheben."},
+      {name:"Klimmzug breiter Griff", code:"Z16", cue:"Weiter Griff an der Stange, Körper nach oben ziehen, betont Rücken und Bizeps."}
+    ]
+  };
+  const CATS = Object.keys(POOL);
+
+  const PROFILES = {
+    mann: {label:"Mann", age:50, height:178, weight:80},
+    frau: {label:"Frau", age:45, height:168, weight:60}
+  };
+  const state = {
+    mann: {focus:new Set(), level:"fortgeschritten", days:3, weeks:6, timeTarget:0, ratio:"3:1", minimize:true, program:null, weights:{}, history:[]},
+    frau: {focus:new Set(), level:"fortgeschritten", days:3, weeks:6, timeTarget:0, ratio:"3:1", minimize:true, program:null, weights:{}, history:[]}
+  };
+  let currentProfile = "mann";
+
+  const LEVELS = {
+    anfaenger:  {label:"Anfänger",      exPerDay:5},
+    fortgeschritten: {label:"Fortgeschritten", exPerDay:6},
+    erfahren:   {label:"Erfahren",      exPerDay:7}
+  };
+  const PHASE_META = {
+    grundlagen: {label:"Grundlagen", cls:"phase-grundlagen"},
+    aufbau:     {label:"Aufbau",     cls:"phase-aufbau"},
+    kraft:      {label:"Kraft",      cls:"phase-kraft"},
+    deload:     {label:"Deload",     cls:"phase-deload"}
+  };
+  const SEC_PER_REP = 3.5, TRANSITION_SEC = 40, WARMUP_SEC = 300, COOLDOWN_SEC = 120;
+  const MET_BY_PHASE = {grundlagen:4.5, aufbau:5.5, kraft:6.0, deload:3.0};
+  const SCHEME = {
+    anfaenger: {
+      grundlagen:{sets:2, reps:"12–15", pause:"45–60s", rpe:"6–7"},
+      aufbau:    {sets:3, reps:"10–12", pause:"60s",    rpe:"7"},
+      kraft:     {sets:3, reps:"8–10",  pause:"75–90s", rpe:"7–8"},
+      deload:    {sets:2, reps:"15",    pause:"45s",    rpe:"5"}
+    },
+    fortgeschritten: {
+      grundlagen:{sets:3, reps:"12–15", pause:"45–60s", rpe:"6–7"},
+      aufbau:    {sets:3, reps:"8–12",  pause:"60–75s", rpe:"7–8"},
+      kraft:     {sets:4, reps:"6–8",   pause:"90s",    rpe:"8"},
+      deload:    {sets:2, reps:"15",    pause:"45s",    rpe:"5"}
+    },
+    erfahren: {
+      grundlagen:{sets:3, reps:"12–15", pause:"45s",     rpe:"7"},
+      aufbau:    {sets:4, reps:"8–12",  pause:"60–75s",  rpe:"8"},
+      kraft:     {sets:4, reps:"5–7",   pause:"90–120s", rpe:"8–9"},
+      deload:    {sets:2, reps:"15",    pause:"45s",     rpe:"5"}
+    }
+  };
+
+  function shuffle(arr){
+    const a = arr.slice();
+    for (let i = a.length - 1; i > 0; i--){ const j = Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; }
+    return a;
+  }
+  let TOTAL_WEEKS_FOR_PHASE = 6;
+  function phaseForWeek(weekIdx){
+    if ((weekIdx+1)%4===0) return "deload";
+    const third = Math.max(1, Math.ceil(TOTAL_WEEKS_FOR_PHASE/3));
+    if (weekIdx < third) return "grundlagen";
+    if (weekIdx < third*2) return "aufbau";
+    return "kraft";
+  }
+  function buildWeekDayCategories(daysPerWeek, focusSet, exPerDay){
+    const totalSlots = daysPerWeek*exPerDay;
+    let weighted = [];
+    CATS.forEach(c => { const w = focusSet.has(c)?3:1; for(let i=0;i<w;i++) weighted.push(c); });
+    weighted = shuffle(weighted);
+    while (weighted.length < totalSlots) weighted = weighted.concat(shuffle(CATS.slice()));
+    weighted = weighted.slice(0, totalSlots);
+    const days = Array.from({length:daysPerWeek}, () => []);
+    let dayPtr = 0;
+    weighted.forEach(cat => {
+      let d = dayPtr, tries = 0;
+      while ((days[d].length>=exPerDay || days[d].includes(cat)) && tries < daysPerWeek*2){ d=(d+1)%daysPerWeek; tries++; }
+      days[d].push(cat); dayPtr=(d+1)%daysPerWeek;
+    });
+    days.forEach(day => {
+      while (day.length < exPerDay){
+        const candidates = shuffle(CATS.slice()).filter(c => !day.includes(c));
+        day.push(candidates.length ? candidates[0] : CATS[Math.floor(Math.random()*CATS.length)]);
+      }
+    });
+    return days;
+  }
+  function makeCategoryQueues(){ const q={}; CATS.forEach(c=>{ q[c]=shuffle(POOL[c].slice()); }); return q; }
+  function drawExercise(queues, cat){ if(queues[cat].length===0) queues[cat]=shuffle(POOL[cat].slice()); return queues[cat].pop(); }
+  function dayLabel(cats){ const uniq=[...new Set(cats)]; return uniq.length<=3 ? uniq.join(" & ") : "Ganzkörper-Mix"; }
+
+  function avgFromRange(str){
+    const nums = String(str).split(/–|-/).map(s=>parseFloat(s.trim())).filter(n=>!isNaN(n));
+    if(!nums.length) return 0;
+    return nums.length===2 ? (nums[0]+nums[1])/2 : nums[0];
+  }
+  function pauseSecondsFromScheme(str){ return avgFromRange(String(str).replace(/s/g,"")); }
+  function exerciseSeconds(scheme){
+    const repsAvg=avgFromRange(scheme.reps), pauseSec=pauseSecondsFromScheme(scheme.pause);
+    return scheme.sets*(repsAvg*SEC_PER_REP) + (scheme.sets-1)*pauseSec;
+  }
+  function dayDurationSeconds(scheme, exCount){
+    const exSec=exerciseSeconds(scheme);
+    return exCount*exSec + Math.max(0,exCount-1)*TRANSITION_SEC + WARMUP_SEC + COOLDOWN_SEC;
+  }
+  function exPerDayForTarget(scheme, targetMinutes){
+    const exSec=exerciseSeconds(scheme), targetSec=targetMinutes*60;
+    const n = Math.round((targetSec - WARMUP_SEC - COOLDOWN_SEC + TRANSITION_SEC) / (exSec + TRANSITION_SEC));
+    return Math.max(3, Math.min(10, n));
+  }
+  function kcalForDay(phase, weightKg, durationMinutes){ return (MET_BY_PHASE[phase]*3.5*weightKg/200)*durationMinutes; }
+  function esc(s){ return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+
+  // ---------- Setup-Erkennung (für Umbauten-Minimierung) & Zug-Typ (für Plattenrechner) ----------
+  function inferSetup(ex){
+    const t=(ex.name+" "+ex.cue).toLowerCase();
+    let attach="Griff";
+    if(t.includes("seilgriff")) attach="Seil";
+    else if(t.includes("stange")) attach="Stange";
+    else if(t.includes("fußschlaufe")) attach="Fußschlaufe";
+    else if(t.includes("klimmzug")) attach="Klimmzugstange";
+    else if(t.includes("balance-pad")) attach="Balance-Pad";
+    let height="mittig";
+    if(t.includes("über kopf")||t.includes(" oben")) height="hoch";
+    else if(t.includes("liegend")||t.includes("boden")||t.includes("tief")||t.includes("kniend")||t.includes("sitzend")) height="tief";
+    return attach+"|"+height;
+  }
+  function inferPull(ex){
+    const t=(ex.name+" "+ex.cue).toLowerCase();
+    return (t.includes("einarmig")||t.includes("einzelgriff")||t.includes("einzelzug")) ? "einzel" : "doppel";
+  }
+  function plateSuggestion(effectiveKg, pull, ratioStr){
+    if(!effectiveKg || effectiveKg<=0) return null;
+    const ratio = parseInt(String(ratioStr).split(":")[0],10) || 3;
+    const mult = ratio * (pull==="einzel" ? 2 : 1);
+    let stack = effectiveKg * mult;
+    stack = Math.max(5, Math.min(75, Math.round(stack/5)*5));
+    return {stack, plates: stack/5};
+  }
+
+  function generateProgram(opts){
+    TOTAL_WEEKS_FOR_PHASE = opts.weeks;
+    const queues = makeCategoryQueues();
+    const weeks = [];
+    for (let w=0; w<opts.weeks; w++){
+      const phase = phaseForWeek(w);
+      const scheme = SCHEME[opts.level][phase];
+      const exPerDay = opts.timeTarget ? exPerDayForTarget(scheme, opts.timeTarget) : opts.exPerDay;
+      const dayCats = buildWeekDayCategories(opts.days, opts.focus, exPerDay);
+      const days = dayCats.map(cats => {
+        let exercises = cats.map(cat => {
+          const ex = drawExercise(queues, cat);
+          return {cat, name:ex.name, code:ex.code, cue:ex.cue};
+        });
+        if (opts.minimize){
+          exercises = exercises.slice().sort((a,b) => inferSetup(a).localeCompare(inferSetup(b)));
+        }
+        const durationSec = dayDurationSeconds(scheme, exercises.length);
+        const durationMin = Math.round(durationSec/60);
+        const kcal = Math.round(kcalForDay(phase, opts.weightKg, durationMin));
+        return {label: dayLabel(cats), exercises, durationMin, kcal};
+      });
+      weeks.push({index:w, phase, days});
+    }
+    return weeks;
+  }
+
+  // ---------- Persistenz ----------
+  function saveState(){
+    try{
+      const dump = {};
+      Object.keys(state).forEach(k => {
+        const s = state[k];
+        dump[k] = {focus:Array.from(s.focus), level:s.level, days:s.days, weeks:s.weeks, timeTarget:s.timeTarget, ratio:s.ratio, minimize:s.minimize, weights:s.weights, history:s.history};
+      });
+      localStorage.setItem(STORE_KEY, JSON.stringify(dump));
+    }catch(e){ /* localStorage evtl. nicht verfügbar (lokale Datei) */ }
+  }
+  function loadState(){
+    try{
+      const raw = localStorage.getItem(STORE_KEY);
+      if(!raw) return;
+      const dump = JSON.parse(raw);
+      Object.keys(dump).forEach(k => {
+        if(!state[k]) return;
+        const d = dump[k];
+        state[k].focus = new Set(d.focus||[]);
+        state[k].level = d.level || state[k].level;
+        state[k].days = d.days || state[k].days;
+        state[k].weeks = d.weeks || state[k].weeks;
+        state[k].timeTarget = d.timeTarget||0;
+        state[k].ratio = d.ratio || "3:1";
+        state[k].minimize = d.minimize !== undefined ? d.minimize : true;
+        state[k].weights = d.weights || {};
+        state[k].history = d.history || [];
+      });
+    }catch(e){ /* ignore */ }
+  }
+
+  // ---------- Rendern ----------
+  function renderProgram(weeks){
+    const container = document.getElementById("program");
+    container.innerHTML = "";
+    weeks.forEach(week => {
+      const scheme = SCHEME[state[currentProfile].level][week.phase];
+      const meta = PHASE_META[week.phase];
+      const det = document.createElement("details");
+      det.className = "week";
+      if (week.index===0) det.open = true;
+      const sum = document.createElement("summary");
+      sum.innerHTML = '<span class="week-title"><span class="wn">Woche '+(week.index+1)+'</span><span class="phase-tag '+meta.cls+'">'+meta.label+'</span></span><span class="chev">▾</span>';
+      det.appendChild(sum);
+      const body = document.createElement("div");
+      body.className = "week-body";
+
+      week.days.forEach((day, di) => {
+        const dDet = document.createElement("details");
+        dDet.className = "day";
+        if (week.index===0 && di===0) dDet.open = true;
+        const dSum = document.createElement("summary");
+        dSum.innerHTML = '<span><span class="day-title">Tag '+(di+1)+'</span><span class="day-sub">'+esc(day.label)+'</span></span><span class="chev">▾</span>';
+        dDet.appendChild(dSum);
+        const dBody = document.createElement("div");
+        dBody.className = "day-body";
+
+        const startBtn = document.createElement("button");
+        startBtn.type = "button"; startBtn.className = "day-start";
+        startBtn.textContent = "▶ Einheit starten";
+        startBtn.dataset.week = week.index; startBtn.dataset.day = di;
+        dBody.appendChild(startBtn);
+
+        day.exercises.forEach((ex, ei) => {
+          const row = document.createElement("div");
+          row.className = "ex";
+          const loggedW = state[currentProfile].weights[ex.code] || "";
+          const sugg = loggedW ? plateSuggestion(parseFloat(loggedW), inferPull(ex), state[currentProfile].ratio) : null;
+          row.innerHTML =
+            '<div class="ex-n num">'+(ei+1)+'</div>'+
+            '<div class="ex-main">'+
+              '<div class="ex-name">'+esc(ex.name)+'</div>'+
+              '<div class="ex-cue">'+esc(ex.cue)+'</div>'+
+              '<div class="ex-meta">'+
+                '<span><b class="num">'+scheme.sets+'</b> × <b class="num">'+scheme.reps+'</b></span>'+
+                '<span>Pause <b class="num">'+scheme.pause+'</b></span>'+
+                '<span>RPE <b class="num">'+scheme.rpe+'</b></span>'+
+                '<span>'+esc(ex.cat)+' · '+esc(ex.code)+'</span>'+
+              '</div>'+
+              '<div class="ex-weight-row">'+
+                '<label>Gewicht (kg) <input type="number" inputmode="decimal" step="0.5" min="0" class="ex-weight-input" data-code="'+esc(ex.code)+'" value="'+esc(String(loggedW))+'"></label>'+
+                '<span class="plate-hint" data-code="'+esc(ex.code)+'">'+(sugg ? '≈ '+sugg.plates+' Platten ('+sugg.stack+' kg Stapel)' : '')+'</span>'+
+              '</div>'+
+            '</div>'+
+            '<a class="ex-video" href="'+VIDEO_BASE+esc(ex.code)+'.mp4">🎬 Video</a>';
+          dBody.appendChild(row);
+        });
+
+        const footer = document.createElement("div");
+        footer.className = "day-footer";
+        footer.innerHTML = '<span>⏱ <b class="num">'+day.durationMin+'</b> Min.</span><span>🔥 <b class="num">'+day.kcal+'</b> kcal</span>';
+        dBody.appendChild(footer);
+
+        dDet.appendChild(dBody);
+        body.appendChild(dDet);
+      });
+      det.appendChild(body);
+      container.appendChild(det);
+    });
+  }
+
+  document.getElementById("program").addEventListener("input", (e) => {
+    const input = e.target.closest(".ex-weight-input");
+    if(!input) return;
+    const code = input.dataset.code;
+    const val = input.value;
+    state[currentProfile].weights[code] = val;
+    const hint = document.querySelector('.plate-hint[data-code="'+CSS.escape(code)+'"]');
+    if (hint){
+      const allEx = [].concat(...Object.values(POOL));
+      const ex = allEx.find(x => x.code === code);
+      const sugg = (val && ex) ? plateSuggestion(parseFloat(val), inferPull(ex), state[currentProfile].ratio) : null;
+      hint.textContent = sugg ? ('≈ '+sugg.plates+' Platten ('+sugg.stack+' kg Stapel)') : "";
+    }
+    saveState();
+  });
+
+  document.getElementById("program").addEventListener("click", (e) => {
+    const btn = e.target.closest(".day-start");
+    if(!btn) return;
+    startSession(parseInt(btn.dataset.week,10), parseInt(btn.dataset.day,10));
+  });
+
+  // ---------- Verlauf ----------
+  function renderHistory(){
+    const list = document.getElementById("historyList");
+    const hist = state[currentProfile].history;
+    if (!hist.length){ list.innerHTML = '<div class="hint">Noch keine Einheiten abgeschlossen.</div>'; return; }
+    list.innerHTML = hist.map(h => {
+      const d = new Date(h.date);
+      const dateStr = d.toLocaleDateString('de-DE', {day:'2-digit', month:'2-digit', year:'numeric'}) + ' · ' + d.toLocaleTimeString('de-DE', {hour:'2-digit', minute:'2-digit'});
+      const exSummary = h.exercises.map(x => esc(x.name)+' ('+x.setsCompleted+' Sätze'+(x.weightKg?', '+x.weightKg+' kg':'')+')').join(' · ');
+      return '<div class="hist-item">'+
+        '<div class="hist-date">'+dateStr+' — '+esc(h.dayLabel)+'</div>'+
+        '<div class="hist-meta">⏱ '+h.durationActualMin+' Min · 🔥 ~'+h.kcal+' kcal · '+h.exercises.length+' Übungen</div>'+
+        '<div class="hist-ex">'+exSummary+'</div>'+
+      '</div>';
+    }).join("");
+  }
+  document.getElementById("exportBtn").addEventListener("click", () => {
+    const hist = state[currentProfile].history;
+    if (!hist.length){ alert("Noch kein Verlauf vorhanden."); return; }
+    let csv = "Datum;Profil;Tag;Dauer_Min;kcal;Übung;Kategorie;Sätze;Gewicht_kg\n";
+    hist.forEach(h => {
+      h.exercises.forEach(x => {
+        csv += [h.date, PROFILES[currentProfile].label, h.dayLabel, h.durationActualMin, h.kcal, x.name, x.cat, x.setsCompleted, x.weightKg||""].join(";") + "\n";
+      });
+    });
+    const blob = new Blob([csv], {type:"text/csv;charset=utf-8"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = "slimbeam-verlauf-"+currentProfile+".csv";
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+  });
+
+  // ---------- Session (geführte Einheit) ----------
+  let session = null;
+  function startSession(weekIndex, dayIndex){
+    const week = state[currentProfile].program[weekIndex];
+    const day = week.days[dayIndex];
+    const scheme = SCHEME[state[currentProfile].level][week.phase];
+    session = {
+      weekIndex, dayIndex, day, scheme,
+      exIndex: 0,
+      setsDone: day.exercises.map(()=>0),
+      weightsLogged: day.exercises.map(ex => state[currentProfile].weights[ex.code] || ""),
+      startTime: Date.now(),
+      plannedSec: day.durationMin*60
+    };
+    document.getElementById("sessDayTitle").textContent = "Tag "+(dayIndex+1)+" — "+day.label;
+    renderSessionExercise();
+    document.getElementById("sessionOverlay").hidden = false;
+    session.timerId = setInterval(updateSessionTimer, 1000);
+    updateSessionTimer();
+  }
+  function updateSessionTimer(){
+    if(!session) return;
+    const elapsedSec = Math.round((Date.now()-session.startTime)/1000);
+    const mm = String(Math.floor(elapsedSec/60)).padStart(2,"0");
+    const ss = String(elapsedSec%60).padStart(2,"0");
+    document.getElementById("sessElapsed").textContent = mm+":"+ss;
+    const remSec = Math.max(0, session.plannedSec - elapsedSec);
+    const rmm = String(Math.floor(remSec/60)).padStart(2,"0");
+    const rss = String(remSec%60).padStart(2,"0");
+    document.getElementById("sessRemaining").textContent = rmm+":"+rss;
+  }
+  function renderSessionExercise(){
+    const ex = session.day.exercises[session.exIndex];
+    document.getElementById("sessProgress").textContent = "Übung "+(session.exIndex+1)+" / "+session.day.exercises.length;
+    document.getElementById("sessProgressBar").style.width = Math.round(((session.exIndex)/session.day.exercises.length)*100)+"%";
+    document.getElementById("sessCat").textContent = ex.cat + " · " + ex.code;
+    document.getElementById("sessName").textContent = ex.name;
+    document.getElementById("sessCue").textContent = ex.cue;
+    document.getElementById("sessTarget").textContent = "Ziel: " + session.scheme.sets + " × " + session.scheme.reps + " · Pause " + session.scheme.pause + " · RPE " + session.scheme.rpe;
+    const setsWrap = document.getElementById("sessSets");
+    setsWrap.innerHTML = "";
+    for (let i=1; i<=session.scheme.sets; i++){
+      const b = document.createElement("button");
+      b.type = "button"; b.className = "sess-set-btn" + (i<=session.setsDone[session.exIndex] ? " done" : "");
+      b.textContent = i;
+      b.addEventListener("click", () => {
+        session.setsDone[session.exIndex] = (session.setsDone[session.exIndex] === i) ? i-1 : i;
+        renderSessionExercise();
+      });
+      setsWrap.appendChild(b);
+    }
+    const wInput = document.getElementById("sessWeightInput");
+    wInput.value = session.weightsLogged[session.exIndex] || "";
+    updateSessPlateHint();
+    document.getElementById("sessPrev").disabled = session.exIndex===0;
+    document.getElementById("sessNext").textContent = (session.exIndex === session.day.exercises.length-1) ? "Fertig ✓" : "Weiter →";
+  }
+  function updateSessPlateHint(){
+    const ex = session.day.exercises[session.exIndex];
+    const val = document.getElementById("sessWeightInput").value;
+    const hint = document.getElementById("sessPlateHint");
+    const sugg = val ? plateSuggestion(parseFloat(val), inferPull(ex), state[currentProfile].ratio) : null;
+    hint.textContent = sugg ? ("→ "+sugg.plates+" Platten aktivieren ("+sugg.stack+" kg Stapel bei "+state[currentProfile].ratio+")") : "";
+  }
+  document.getElementById("sessWeightInput").addEventListener("input", (e) => {
+    session.weightsLogged[session.exIndex] = e.target.value;
+    updateSessPlateHint();
+  });
+  document.getElementById("sessNext").addEventListener("click", () => {
+    if (session.exIndex < session.day.exercises.length-1){ session.exIndex++; renderSessionExercise(); }
+    else { finishSession(); }
+  });
+  document.getElementById("sessPrev").addEventListener("click", () => {
+    if (session.exIndex > 0){ session.exIndex--; renderSessionExercise(); }
+  });
+  document.getElementById("sessFinish").addEventListener("click", finishSession);
+  document.getElementById("sessClose").addEventListener("click", () => {
+    if (confirm("Einheit ohne Speichern abbrechen?")){
+      clearInterval(session.timerId); session=null;
+      document.getElementById("sessionOverlay").hidden = true;
+    }
+  });
+  function finishSession(){
+    clearInterval(session.timerId);
+    const elapsedSec = Math.round((Date.now()-session.startTime)/1000);
+    const record = {
+      date: new Date().toISOString(),
+      dayLabel: session.day.label,
+      durationActualMin: Math.max(1, Math.round(elapsedSec/60)),
+      kcal: session.day.kcal,
+      exercises: session.day.exercises.map((ex,i) => ({
+        name: ex.name, code: ex.code, cat: ex.cat,
+        setsCompleted: session.setsDone[i],
+        weightKg: session.weightsLogged[i] || null
+      }))
+    };
+    state[currentProfile].history.unshift(record);
+    session.day.exercises.forEach((ex,i) => {
+      if (session.weightsLogged[i]) state[currentProfile].weights[ex.code] = session.weightsLogged[i];
+    });
+    saveState();
+    session = null;
+    document.getElementById("sessionOverlay").hidden = true;
+    renderHistory();
+    renderProgram(state[currentProfile].program);
+  }
+
+  // ---------- UI wiring ----------
+  const profileSegEl = document.getElementById("profileSeg");
+  Object.keys(PROFILES).forEach(key => {
+    const p = PROFILES[key], id = "profile-"+key;
+    const input = document.createElement("input");
+    input.type="radio"; input.name="profile"; input.className="seg-input"; input.id=id; input.value=key;
+    if (key===currentProfile) input.checked=true;
+    const label = document.createElement("label");
+    label.className="seg"; label.htmlFor=id;
+    label.innerHTML = '<span class="seg-name">'+p.label+'</span><span class="seg-stats">'+p.age+' J · '+p.height+' cm · '+p.weight+' kg</span>';
+    profileSegEl.appendChild(input); profileSegEl.appendChild(label);
+  });
+
+  const focusChipsEl = document.getElementById("focusChips");
+  CATS.forEach((cat,i) => {
+    const id="focus-"+i;
+    const input=document.createElement("input");
+    input.type="checkbox"; input.className="chip-input"; input.id=id; input.value=cat;
+    const label=document.createElement("label");
+    label.className="chip"; label.htmlFor=id; label.textContent=cat;
+    focusChipsEl.appendChild(input); focusChipsEl.appendChild(label);
+  });
+
+  const levelSegEl = document.getElementById("levelSeg");
+  ["anfaenger","fortgeschritten","erfahren"].forEach(key => {
+    const id="level-"+key;
+    const input=document.createElement("input");
+    input.type="radio"; input.name="level"; input.className="seg-input"; input.id=id; input.value=key;
+    if (key==="fortgeschritten") input.checked=true;
+    const label=document.createElement("label");
+    label.className="seg"; label.htmlFor=id; label.textContent=LEVELS[key].label;
+    levelSegEl.appendChild(input); levelSegEl.appendChild(label);
+  });
+
+  const ratioSegEl = document.getElementById("ratioSeg");
+  ["3:1","2:1","1:1"].forEach(r => {
+    const id="ratio-"+r.replace(":","");
+    const input=document.createElement("input");
+    input.type="radio"; input.name="ratio"; input.className="seg-input"; input.id=id; input.value=r;
+    if (r==="3:1") input.checked=true;
+    const label=document.createElement("label");
+    label.className="seg"; label.htmlFor=id; label.textContent=r;
+    ratioSegEl.appendChild(input); ratioSegEl.appendChild(label);
+  });
+
+  let daysVal = 3;
+  const daysOut = document.getElementById("daysOut");
+  document.getElementById("daysMinus").addEventListener("click", () => { daysVal=Math.max(2,daysVal-1); daysOut.textContent=daysVal; });
+  document.getElementById("daysPlus").addEventListener("click", () => { daysVal=Math.min(6,daysVal+1); daysOut.textContent=daysVal; });
+
+  function currentOpts(){
+    const focus = new Set(Array.from(focusChipsEl.querySelectorAll(".chip-input:checked")).map(i=>i.value));
+    const level = (document.querySelector('input[name="level"]:checked')||{}).value || "fortgeschritten";
+    const weeks = parseInt(document.getElementById("weeksSelect").value,10);
+    const ratio = (document.querySelector('input[name="ratio"]:checked')||{}).value || "3:1";
+    const minimize = document.getElementById("minimizeChip").checked;
+    return {focus, level, exPerDay:LEVELS[level].exPerDay, days:daysVal, weeks, timeTarget:state[currentProfile].timeTarget, weightKg:PROFILES[currentProfile].weight, ratio, minimize};
+  }
+  function saveUIIntoProfile(key){
+    const opts = currentOpts();
+    state[key].focus=opts.focus; state[key].level=opts.level; state[key].days=opts.days; state[key].weeks=opts.weeks;
+    state[key].ratio=opts.ratio; state[key].minimize=opts.minimize;
+    saveState();
+  }
+  function updateTimeButtonsUI(){
+    const active = state[currentProfile].timeTarget;
+    document.querySelectorAll(".time-btn").forEach(btn => btn.classList.toggle("active", parseInt(btn.dataset.min,10)===active));
+  }
+  function showSummary(weeksProgram, opts){
+    const p = PROFILES[currentProfile];
+    document.getElementById("summaryBox").style.display = "block";
+    document.getElementById("profileLine").innerHTML = "Programm für <b>"+p.label+"</b> · "+p.age+" Jahre · "+p.height+" cm · "+p.weight+" kg";
+    document.getElementById("sumSessions").textContent = opts.days*opts.weeks;
+    document.getElementById("sumWeeks").textContent = opts.weeks;
+    const allDays = weeksProgram.flatMap(w=>w.days);
+    document.getElementById("sumExPerDay").textContent = Math.round(allDays.reduce((a,d)=>a+d.exercises.length,0)/allDays.length);
+    document.getElementById("sumDuration").textContent = Math.round(allDays.reduce((a,d)=>a+d.durationMin,0)/allDays.length);
+    document.getElementById("sumCalories").textContent = Math.round(allDays.reduce((a,d)=>a+d.kcal,0)/allDays.length);
+    const focusLine = document.getElementById("focusLine");
+    focusLine.innerHTML = opts.focus.size ? "Fokus: <b>"+Array.from(opts.focus).join(", ")+"</b> — diese Bereiche kommen häufiger vor." : "Kein Fokus gewählt — alle Bereiche werden gleichmäßig trainiert.";
+    updateTimeButtonsUI();
+  }
+  function loadProfileIntoUI(key){
+    const s = state[key];
+    focusChipsEl.querySelectorAll(".chip-input").forEach(input => input.checked = s.focus.has(input.value));
+    document.querySelectorAll('input[name="level"]').forEach(input => input.checked = (input.value===s.level));
+    document.querySelectorAll('input[name="ratio"]').forEach(input => input.checked = (input.value===s.ratio));
+    document.getElementById("minimizeChip").checked = s.minimize;
+    daysVal = s.days; daysOut.textContent = daysVal;
+    document.getElementById("weeksSelect").value = String(s.weeks);
+    updateTimeButtonsUI();
+    renderHistory();
+    if (s.program){
+      const opts = {level:s.level, focus:s.focus, days:s.days, weeks:s.weeks};
+      renderProgram(s.program);
+      showSummary(s.program, opts);
+    } else {
+      document.getElementById("program").innerHTML = '<div class="empty">Noch kein Programm für dieses Profil erstellt.<br>Einstellungen wählen und „Trainingsprogramm erstellen" tippen.</div>';
+      document.getElementById("summaryBox").style.display = "none";
+    }
+  }
+  function runGenerate(){
+    const opts = currentOpts();
+    const weeksProgram = generateProgram(opts);
+    renderProgram(weeksProgram);
+    showSummary(weeksProgram, opts);
+    state[currentProfile].program = weeksProgram;
+    saveUIIntoProfile(currentProfile);
+    document.getElementById("setupPanel").open = false;
+    document.getElementById("program").scrollIntoView({behavior:"smooth", block:"start"});
+  }
+
+  document.querySelectorAll('input[name="profile"]').forEach(input => {
+    input.addEventListener("change", () => {
+      saveUIIntoProfile(currentProfile);
+      currentProfile = input.value;
+      loadProfileIntoUI(currentProfile);
+    });
+  });
+  document.getElementById("timeButtons").addEventListener("click", (e) => {
+    const btn = e.target.closest(".time-btn");
+    if (!btn) return;
+    const val = parseInt(btn.dataset.min,10);
+    state[currentProfile].timeTarget = (state[currentProfile].timeTarget===val && val!==0) ? 0 : val;
+    runGenerate();
+  });
+  document.querySelectorAll('input[name="ratio"]').forEach(input => input.addEventListener("change", () => { saveUIIntoProfile(currentProfile); renderProgram(state[currentProfile].program || []); }));
+  document.getElementById("minimizeChip").addEventListener("change", () => saveUIIntoProfile(currentProfile));
+
+  document.getElementById("generateBtn").addEventListener("click", runGenerate);
+  document.getElementById("regenBtn").addEventListener("click", runGenerate);
+
+  loadState();
+  loadProfileIntoUI(currentProfile);
+})();
+</script>
+</body>
+</html>
