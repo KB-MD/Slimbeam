@@ -125,6 +125,8 @@
   .day > summary::-webkit-details-marker{display:none;}
   .day-title{font-size:14px; font-weight:600;}
   .day-sub{font-size:11.5px; color:var(--ink-muted); font-weight:400; margin-left:6px;}
+  .day-done-badge{display:inline-block; margin-left:8px; padding:2px 8px; border-radius:999px; background:var(--moss); color:#fff; font-size:10.5px; font-weight:700; vertical-align:middle;}
+  .day-done-note{font-size:11px; color:var(--moss); margin:6px 0 2px; font-weight:600;}
   .day > summary .chev{color:var(--ink-muted); font-size:12px; transition:transform .18s ease;}
   .day[open] > summary .chev{transform:rotate(180deg);}
   .day-body{padding:0 12px 10px;}
@@ -751,7 +753,7 @@
       const dump = {};
       Object.keys(state).forEach(k => {
         const s = state[k];
-        dump[k] = {focus:Array.from(s.focus), level:s.level, days:s.days, weeks:s.weeks, timeTarget:s.timeTarget, ratio:s.ratio, minimize:s.minimize, weights:s.weights, history:s.history};
+        dump[k] = {focus:Array.from(s.focus), level:s.level, days:s.days, weeks:s.weeks, timeTarget:s.timeTarget, ratio:s.ratio, minimize:s.minimize, weights:s.weights, history:s.history, program:s.program};
       });
       localStorage.setItem(STORE_KEY, JSON.stringify(dump));
     }catch(e){ /* localStorage evtl. nicht verfügbar (lokale Datei) */ }
@@ -773,6 +775,7 @@
         state[k].minimize = d.minimize !== undefined ? d.minimize : true;
         state[k].weights = d.weights || {};
         state[k].history = d.history || [];
+        state[k].program = d.program || null;
       });
     }catch(e){ /* ignore */ }
   }
@@ -813,15 +816,24 @@
         dDet.className = "day";
         if (week.index===0 && di===0) dDet.open = true;
         const dSum = document.createElement("summary");
-        dSum.innerHTML = '<span><span class="day-title">Tag '+(di+1)+'</span><span class="day-sub">'+esc(day.label)+'</span></span><span class="chev">▾</span>';
+        dSum.innerHTML = '<span><span class="day-title">Tag '+(di+1)+'</span><span class="day-sub">'+esc(day.label)+'</span>'+
+          (day.completed ? '<span class="day-done-badge">✓ Erledigt</span>' : '')+
+          '</span><span class="chev">▾</span>';
         dDet.appendChild(dSum);
         const dBody = document.createElement("div");
         dBody.className = "day-body";
 
         const startBtn = document.createElement("button");
         startBtn.type = "button"; startBtn.className = "day-start";
-        startBtn.textContent = "▶ Einheit starten";
+        startBtn.textContent = day.completed ? "🔁 Erneut starten" : "▶ Einheit starten";
         startBtn.dataset.week = week.index; startBtn.dataset.day = di;
+        if (day.completed){
+          const doneNote = document.createElement("div");
+          doneNote.className = "day-done-note";
+          const d = new Date(day.completed.date);
+          doneNote.textContent = "✓ Abgeschlossen am "+d.toLocaleDateString('de-DE')+" · "+day.completed.durationActualMin+" Min · ~"+day.completed.kcal+" kcal";
+          dBody.appendChild(doneNote);
+        }
         dBody.appendChild(startBtn);
 
         dBody.appendChild(renderSubSection("🔥 Aufwärmen (mit Gerät)", day.warmup, WARMUP_SEC, false));
@@ -1059,6 +1071,7 @@
       exercises: exercisesData
     };
     state[currentProfile].history.unshift(record);
+    session.day.completed = {date: record.date, durationActualMin: durationActualMin, kcal: kcalInfo.kcal};
     session.day.exercises.forEach((ex,i) => {
       if (session.weightsLogged[i]) state[currentProfile].weights[ex.code] = session.weightsLogged[i];
     });
