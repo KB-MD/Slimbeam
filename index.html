@@ -298,7 +298,7 @@
   <div class="method-note">
     <h3>Zur Methodik</h3>
     <p>Kategorien nach echten Handbuch-Kapiteln (1 Brust, 2 Rücken, 3 Trizeps, 4 Schultern, 5 Bauch, 6 Beine, K/C/Z Ganzkörper-Varianten). Drei Belastungsphasen (Grundlagen/Aufbau/Kraft), jede 4. Woche Deload. Dauer/Kalorien sind Schätzungen aus Sätzen, Wiederholungen, Pausen sowie Auf-/Abwärmzeit.</p>
-    <p><b>Plattenempfehlung:</b> Beim SlimBeam gilt: effektives Gewicht am Griff = Gewichtsstapel ÷ (Übersetzung × 2 bei Einzelzug, × 1 bei Doppelzug). Bei Werks-Übersetzung 3:1 entspricht der Maximalstapel von 75 kg z. B. 25 kg beim Doppelzug bzw. 12,5 kg beim Einzelzug. Die App rechnet aus deinem eingetragenen Zielgewicht zurück, wie viele 5-kg-Platten (max. 15) zu aktivieren sind — eine Schätzung, keine Herstellerangabe für jede einzelne Übung.</p>
+    <p><b>Plattenrechner:</b> Du trägst die Anzahl aktivierter 5-kg-Platten (max. 15) ein, die App berechnet daraus das effektive Gewicht am Griff: kg = (Platten × 5) ÷ (Übersetzung × 2 bei Einzelzug, × 1 bei Doppelzug). Bei Werks-Übersetzung 3:1 entsprechen z. B. alle 15 Platten (75 kg Stapel) 25 kg beim Doppelzug bzw. 12,5 kg beim Einzelzug — Formel nach NOHRDs eigenen Angaben, aber welche Übung Einzel- oder Doppelzug ist, wird anhand der Übungsbeschreibung geschätzt.</p>
     <p><b>Verlauf:</b> Wird lokal im Browser gespeichert. Da die Datei lokal (nicht über einen Webserver) geöffnet wird, kann Safari diesen Speicher unter Umständen nicht zuverlässig behalten (z. B. nach Zurücksetzen der Website-Daten) — nutze bei Bedarf „Verlauf exportieren" als Sicherung.</p>
     <p>Der „🎬 Video"-Button öffnet das Original-Video von NOHRD zur jeweiligen Seite im selben Tab (gleiche Datei wie der QR-Code im Handbuch).</p>
   </div>
@@ -325,8 +325,8 @@
     <div class="sess-target" id="sessTarget"></div>
     <div class="sess-sets" id="sessSets"></div>
     <div class="sess-weight">
-      <label>Eingestelltes Gewicht (kg, effektiv am Griff)</label>
-      <input type="number" inputmode="decimal" step="0.5" min="0" id="sessWeightInput">
+      <label>Aktivierte Gewichtsplatten (Anzahl)</label>
+      <input type="number" inputmode="numeric" step="1" min="0" max="15" id="sessWeightInput">
       <div class="sess-plate" id="sessPlateHint"></div>
     </div>
     <div class="sess-nav">
@@ -567,13 +567,12 @@
     const t=(ex.name+" "+ex.cue).toLowerCase();
     return (t.includes("einarmig")||t.includes("einzelgriff")||t.includes("einzelzug")) ? "einzel" : "doppel";
   }
-  function plateSuggestion(effectiveKg, pull, ratioStr){
-    if(!effectiveKg || effectiveKg<=0) return null;
+  function kgFromPlates(plates, pull, ratioStr){
+    if(!plates || plates<=0) return null;
     const ratio = parseInt(String(ratioStr).split(":")[0],10) || 3;
-    const mult = ratio * (pull==="einzel" ? 2 : 1);
-    let stack = effectiveKg * mult;
-    stack = Math.max(5, Math.min(75, Math.round(stack/5)*5));
-    return {stack, plates: stack/5};
+    const stack = Math.max(0, Math.min(15, Math.round(plates))) * 5;
+    const kg = stack / (ratio * (pull==="einzel" ? 2 : 1));
+    return {stack, kg: Math.round(kg*100)/100};
   }
 
   function generateProgram(opts){
@@ -670,8 +669,8 @@
         day.exercises.forEach((ex, ei) => {
           const row = document.createElement("div");
           row.className = "ex";
-          const loggedW = state[currentProfile].weights[ex.code] || "";
-          const sugg = loggedW ? plateSuggestion(parseFloat(loggedW), inferPull(ex), state[currentProfile].ratio) : null;
+          const loggedPlates = state[currentProfile].weights[ex.code] || "";
+          const sugg = loggedPlates ? kgFromPlates(parseFloat(loggedPlates), inferPull(ex), state[currentProfile].ratio) : null;
           row.innerHTML =
             '<div class="ex-n num">'+(ei+1)+'</div>'+
             '<div class="ex-main">'+
@@ -684,8 +683,8 @@
                 '<span>'+esc(ex.cat)+' · '+esc(ex.code)+'</span>'+
               '</div>'+
               '<div class="ex-weight-row">'+
-                '<label>Gewicht (kg) <input type="number" inputmode="decimal" step="0.5" min="0" class="ex-weight-input" data-code="'+esc(ex.code)+'" value="'+esc(String(loggedW))+'"></label>'+
-                '<span class="plate-hint" data-code="'+esc(ex.code)+'">'+(sugg ? '≈ '+sugg.plates+' Platten ('+sugg.stack+' kg Stapel)' : '')+'</span>'+
+                '<label>Platten <input type="number" inputmode="numeric" step="1" min="0" max="15" class="ex-weight-input" data-code="'+esc(ex.code)+'" value="'+esc(String(loggedPlates))+'"></label>'+
+                '<span class="plate-hint" data-code="'+esc(ex.code)+'">'+(sugg ? '≈ '+sugg.kg+' kg effektiv ('+sugg.stack+' kg Stapel)' : '')+'</span>'+
               '</div>'+
             '</div>'+
             '<a class="ex-video" href="'+VIDEO_BASE+esc(ex.code)+'.mp4">🎬 Video</a>';
@@ -715,8 +714,8 @@
     if (hint){
       const allEx = [].concat(...Object.values(POOL));
       const ex = allEx.find(x => x.code === code);
-      const sugg = (val && ex) ? plateSuggestion(parseFloat(val), inferPull(ex), state[currentProfile].ratio) : null;
-      hint.textContent = sugg ? ('≈ '+sugg.plates+' Platten ('+sugg.stack+' kg Stapel)') : "";
+      const sugg = (val && ex) ? kgFromPlates(parseFloat(val), inferPull(ex), state[currentProfile].ratio) : null;
+      hint.textContent = sugg ? ('≈ '+sugg.kg+' kg effektiv ('+sugg.stack+' kg Stapel)') : "";
     }
     saveState();
   });
@@ -735,7 +734,7 @@
     list.innerHTML = hist.map(h => {
       const d = new Date(h.date);
       const dateStr = d.toLocaleDateString('de-DE', {day:'2-digit', month:'2-digit', year:'numeric'}) + ' · ' + d.toLocaleTimeString('de-DE', {hour:'2-digit', minute:'2-digit'});
-      const exSummary = h.exercises.map(x => esc(x.name)+' ('+x.setsCompleted+' Sätze'+(x.weightKg?', '+x.weightKg+' kg':'')+')').join(' · ');
+      const exSummary = h.exercises.map(x => esc(x.name)+' ('+x.setsCompleted+' Sätze'+(x.plates?', '+x.plates+' Platten ≈ '+x.weightKg+' kg':'')+')').join(' · ');
       return '<div class="hist-item">'+
         '<div class="hist-date">'+dateStr+' — '+esc(h.dayLabel)+'</div>'+
         '<div class="hist-meta">⏱ '+h.durationActualMin+' Min · 🔥 ~'+h.kcal+' kcal · '+h.exercises.length+' Übungen</div>'+
@@ -746,10 +745,10 @@
   document.getElementById("exportBtn").addEventListener("click", () => {
     const hist = state[currentProfile].history;
     if (!hist.length){ alert("Noch kein Verlauf vorhanden."); return; }
-    let csv = "Datum;Profil;Tag;Dauer_Min;kcal;Übung;Kategorie;Sätze;Gewicht_kg\n";
+    let csv = "Datum;Profil;Tag;Dauer_Min;kcal;Übung;Kategorie;Sätze;Platten;Gewicht_kg\n";
     hist.forEach(h => {
       h.exercises.forEach(x => {
-        csv += [h.date, PROFILES[currentProfile].label, h.dayLabel, h.durationActualMin, h.kcal, x.name, x.cat, x.setsCompleted, x.weightKg||""].join(";") + "\n";
+        csv += [h.date, PROFILES[currentProfile].label, h.dayLabel, h.durationActualMin, h.kcal, x.name, x.cat, x.setsCompleted, x.plates||"", x.weightKg||""].join(";") + "\n";
       });
     });
     const blob = new Blob([csv], {type:"text/csv;charset=utf-8"});
@@ -821,8 +820,8 @@
     const ex = session.day.exercises[session.exIndex];
     const val = document.getElementById("sessWeightInput").value;
     const hint = document.getElementById("sessPlateHint");
-    const sugg = val ? plateSuggestion(parseFloat(val), inferPull(ex), state[currentProfile].ratio) : null;
-    hint.textContent = sugg ? ("→ "+sugg.plates+" Platten aktivieren ("+sugg.stack+" kg Stapel bei "+state[currentProfile].ratio+")") : "";
+    const sugg = val ? kgFromPlates(parseFloat(val), inferPull(ex), state[currentProfile].ratio) : null;
+    hint.textContent = sugg ? ("→ "+sugg.kg+" kg effektiv am Griff ("+sugg.stack+" kg Stapel bei "+state[currentProfile].ratio+")") : "";
   }
   document.getElementById("sessWeightInput").addEventListener("input", (e) => {
     session.weightsLogged[session.exIndex] = e.target.value;
@@ -850,11 +849,16 @@
       dayLabel: session.day.label,
       durationActualMin: Math.max(1, Math.round(elapsedSec/60)),
       kcal: session.day.kcal,
-      exercises: session.day.exercises.map((ex,i) => ({
-        name: ex.name, code: ex.code, cat: ex.cat,
-        setsCompleted: session.setsDone[i],
-        weightKg: session.weightsLogged[i] || null
-      }))
+      exercises: session.day.exercises.map((ex,i) => {
+        const plates = session.weightsLogged[i] || null;
+        const kgInfo = plates ? kgFromPlates(parseFloat(plates), inferPull(ex), state[currentProfile].ratio) : null;
+        return {
+          name: ex.name, code: ex.code, cat: ex.cat,
+          setsCompleted: session.setsDone[i],
+          plates: plates,
+          weightKg: kgInfo ? kgInfo.kg : null
+        };
+      })
     };
     state[currentProfile].history.unshift(record);
     session.day.exercises.forEach((ex,i) => {
