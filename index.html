@@ -317,6 +317,7 @@
     <p>Kategorien nach echten Handbuch-Kapiteln (1 Brust, 2 Rücken, 3 Trizeps, 4 Schultern, 5 Bauch, 6 Beine, K/C/Z Ganzkörper-Varianten). Drei Belastungsphasen (Grundlagen/Aufbau/Kraft), jede 4. Woche Deload. Dauer/Kalorien sind Schätzungen aus Sätzen, Wiederholungen, Pausen sowie Auf-/Abwärmzeit.</p>
     <p><b>Plattenrechner:</b> Du trägst die Anzahl aktivierter 5-kg-Platten (max. 15) ein, die App berechnet daraus das effektive Gewicht am Griff: kg = (Platten × 5) ÷ (Übersetzung × 2 bei Einzelzug, × 1 bei Doppelzug). Bei Werks-Übersetzung 3:1 entsprechen z. B. alle 15 Platten (75 kg Stapel) 25 kg beim Doppelzug bzw. 12,5 kg beim Einzelzug — Formel nach NOHRDs eigenen Angaben, aber welche Übung Einzel- oder Doppelzug ist, wird anhand der Übungsbeschreibung geschätzt.</p>
     <p><b>Verlauf:</b> Wird lokal im Browser gespeichert. Da die Datei lokal (nicht über einen Webserver) geöffnet wird, kann Safari diesen Speicher unter Umständen nicht zuverlässig behalten (z. B. nach Zurücksetzen der Website-Daten) — nutze bei Bedarf „Verlauf exportieren" als Sicherung.</p>
+    <p><b>Rechts/Links-Regel:</b> Wird eine einarmige Übung ausgewählt, folgt automatisch direkt danach dieselbe Übung für die Gegenseite (rechts/links), damit beide Körperseiten im gleichen Umfang trainiert werden. Das kann die tatsächliche Übungsanzahl eines Tages leicht über die Zielvorgabe hinaus erhöhen — Dauer/Kalorien werden entsprechend neu berechnet.</p>
     <p><b>Aufwärmen/Cool-down:</b> Jeder Tag enthält 3 Aufwärm- (leicht, dynamisch, am Gerät) und 3 Cool-down-Übungen (sanfte Dehnung, teils am Gerät) — beides bereits erfahrungsbasierte, leichte Varianten realer Katalog-Übungen mit denselben Original-Videos, keine eigenen Handbuchseiten. Die Zeit dafür war schon vorher in der Dauer-Schätzung enthalten (5 Min. Aufwärmen, 2 Min. Cool-down) und wird jetzt nur mit konkreten Übungen gefüllt.</p>
   </div>
 
@@ -651,6 +652,9 @@
     const t=(ex.name+" "+ex.cue).toLowerCase();
     return (t.includes("einarmig")||t.includes("einzelgriff")||t.includes("einzelzug")) ? "einzel" : "doppel";
   }
+  function isUnilateral(ex){
+    return (ex.name+" "+ex.cue).toLowerCase().includes("einarmig");
+  }
   function kgFromPlates(plates, pull, ratioStr){
     if(!plates || plates<=0) return null;
     const ratio = parseInt(String(ratioStr).split(":")[0],10) || 3;
@@ -669,9 +673,15 @@
       const exPerDay = opts.timeTarget ? exPerDayForTarget(scheme, opts.timeTarget) : opts.exPerDay;
       const dayCats = buildWeekDayCategories(opts.days, opts.focus, exPerDay);
       const days = dayCats.map(cats => {
-        let exercises = cats.map(cat => {
+        let exercises = [];
+        cats.forEach(cat => {
           const ex = drawExercise(queues, cat);
-          return {cat, name:ex.name, code:ex.code, cue:ex.cue};
+          if (isUnilateral(ex)){
+            exercises.push({cat, name:ex.name+" (rechts)", code:ex.code, cue:ex.cue});
+            exercises.push({cat, name:ex.name+" (links)", code:ex.code, cue:ex.cue});
+          } else {
+            exercises.push({cat, name:ex.name, code:ex.code, cue:ex.cue});
+          }
         });
         if (opts.minimize){
           exercises = exercises.slice().sort((a,b) => inferSetup(a).localeCompare(inferSetup(b)));
