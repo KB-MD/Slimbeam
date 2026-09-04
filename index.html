@@ -309,6 +309,19 @@
         <div class="hint">Ordnet Übungen innerhalb eines Tages so, dass Griff/Anbauteil möglichst selten gewechselt werden muss (grobe Schätzung anhand der Übungsbeschreibung).</div>
       </fieldset>
 
+      <fieldset>
+        <legend>☁️ Cloud-Sync (GitHub Gist)</legend>
+        <div class="hint">Speichert Plan, Verlauf, Gewichte und Abgeschlossen-Status geräteübergreifend in einem privaten GitHub Gist. Erstelle dafür ein Personal Access Token nur mit Berechtigung „gist" (Settings → Developer settings → Personal access tokens). Das Token wird lokal auf diesem Gerät gespeichert.</div>
+        <div class="row-fields" style="margin-bottom:8px;">
+          <input type="password" id="cloudTokenInput" placeholder="ghp_… (Scope: gist)" style="flex:1; height:42px; border:1px solid var(--border); border-radius:4px; padding:0 10px; font-size:14px;">
+        </div>
+        <div class="row-fields">
+          <button type="button" class="btn-secondary" id="cloudSaveTokenBtn" style="margin-top:0;">Verbinden &amp; hochladen</button>
+          <button type="button" class="btn-secondary" id="cloudPullBtn" style="margin-top:0;">Von Cloud laden</button>
+        </div>
+        <div class="hint" id="cloudStatus" style="margin-top:8px;"></div>
+      </fieldset>
+
       <button class="btn-primary" id="generateBtn">Trainingsprogramm erstellen</button>
     </div>
   </details>
@@ -748,36 +761,111 @@
   }
 
   // ---------- Persistenz ----------
-  function saveState(){
+  function buildDump(){
+    const dump = {_updatedAt: Date.now()};
+    Object.keys(state).forEach(k => {
+      const s = state[k];
+      dump[k] = {focus:Array.from(s.focus), level:s.level, days:s.days, weeks:s.weeks, timeTarget:s.timeTarget, ratio:s.ratio, minimize:s.minimize, weights:s.weights, history:s.history, program:s.program};
+    });
+    return dump;
+  }
+  function applyDump(dump){
+    Object.keys(dump).forEach(k => {
+      if(!state[k]) return;
+      const d = dump[k];
+      state[k].focus = new Set(d.focus||[]);
+      state[k].level = d.level || state[k].level;
+      state[k].days = d.days || state[k].days;
+      state[k].weeks = d.weeks || state[k].weeks;
+      state[k].timeTarget = d.timeTarget||0;
+      state[k].ratio = d.ratio || "3:1";
+      state[k].minimize = d.minimize !== undefined ? d.minimize : true;
+      state[k].weights = d.weights || {};
+      state[k].history = d.history || [];
+      state[k].program = d.program || null;
+    });
+  }
+  function saveState(skipCloud){
     try{
-      const dump = {};
-      Object.keys(state).forEach(k => {
-        const s = state[k];
-        dump[k] = {focus:Array.from(s.focus), level:s.level, days:s.days, weeks:s.weeks, timeTarget:s.timeTarget, ratio:s.ratio, minimize:s.minimize, weights:s.weights, history:s.history, program:s.program};
-      });
+      const dump = buildDump();
       localStorage.setItem(STORE_KEY, JSON.stringify(dump));
     }catch(e){ /* localStorage evtl. nicht verfügbar (lokale Datei) */ }
+    if (!skipCloud) scheduleCloudPush();
   }
   function loadState(){
     try{
       const raw = localStorage.getItem(STORE_KEY);
       if(!raw) return;
-      const dump = JSON.parse(raw);
-      Object.keys(dump).forEach(k => {
-        if(!state[k]) return;
-        const d = dump[k];
-        state[k].focus = new Set(d.focus||[]);
-        state[k].level = d.level || state[k].level;
-        state[k].days = d.days || state[k].days;
-        state[k].weeks = d.weeks || state[k].weeks;
-        state[k].timeTarget = d.timeTarget||0;
-        state[k].ratio = d.ratio || "3:1";
-        state[k].minimize = d.minimize !== undefined ? d.minimize : true;
-        state[k].weights = d.weights || {};
-        state[k].history = d.history || [];
-        state[k].program = d.program || null;
-      });
+      applyDump(JSON.parse(raw));
     }catch(e){ /* ignore */ }
+  }
+
+  // ---------- Cloud-Sync über privates GitHub Gist ----------
+  const CLOUD_TOKEN_KEY = "slimbeamCloudToken";
+  const CLOUD_GIST_KEY = "slimbeamCloudGistId";
+  const GIST_FILENAME = "slimbeam-daten.json";
+  function cloudToken(){ return localStorage.getItem(CLOUD_TOKEN_KEY) || ""; }
+  function cloudGistId(){ return localStorage.getItem(CLOUD_GIST_KEY) || ""; }
+  function setSyncStatus(msg){
+    const el = document.getElementById("cloudStatus");
+    if (el) el.textContent = msg;
+  }
+  let cloudPushTimer = null;
+  function scheduleCloudPush(){
+    if (!cloudToken()) return;
+    clearTimeout(cloudPushTimer);
+    cloudPushTimer = setTimeout(cloudPush, 1500);
+  }
+  async function cloudPush(){
+    const token = cloudToken();
+    if (!token) return;
+    setSyncStatus("Synchronisiere …");
+    try{
+      const dump = buildDump();
+      localStorage.setItem(STORE_KEY, JSON.stringify(dump));
+      const gistId = cloudGistId();
+      const payload = {description:"SlimBeam Trainingsplaner – Daten (privat)", public:false, files:{[GIST_FILENAME]:{content: JSON.stringify(dump)}}};
+      const url = gistId ? ("https://api.github.com/gists/"+gistId) : "https://api.github.com/gists";
+      const res = await fetch(url, {
+        method: gistId ? "PATCH" : "POST",
+        headers: {"Authorization":"token "+token, "Accept":"application/vnd.github+json", "Content-Type":"application/json"},
+        body: JSON.stringify(payload)
+      });
+      if (!res.ok) throw new Error("HTTP "+res.status);
+      const data = await res.json();
+      if (!gistId) localStorage.setItem(CLOUD_GIST_KEY, data.id);
+      setSyncStatus("Zuletzt synchronisiert: "+new Date().toLocaleTimeString('de-DE'));
+    }catch(e){
+      setSyncStatus("Sync fehlgeschlagen ("+e.message+")");
+    }
+  }
+  async function cloudPull(showStatus){
+    const token = cloudToken(), gistId = cloudGistId();
+    if (!token || !gistId) return false;
+    if (showStatus) setSyncStatus("Lade aus der Cloud …");
+    try{
+      const res = await fetch("https://api.github.com/gists/"+gistId, {
+        headers: {"Authorization":"token "+token, "Accept":"application/vnd.github+json"}
+      });
+      if (!res.ok) throw new Error("HTTP "+res.status);
+      const data = await res.json();
+      const file = data.files && data.files[GIST_FILENAME];
+      if (!file) throw new Error("Datei nicht gefunden");
+      const cloudDump = JSON.parse(file.content);
+      const localRaw = localStorage.getItem(STORE_KEY);
+      const localDump = localRaw ? JSON.parse(localRaw) : null;
+      if (!localDump || (cloudDump._updatedAt||0) > (localDump._updatedAt||0)){
+        applyDump(cloudDump);
+        localStorage.setItem(STORE_KEY, JSON.stringify(cloudDump));
+        if (showStatus) setSyncStatus("Aus der Cloud übernommen ("+new Date().toLocaleTimeString('de-DE')+")");
+        return true;
+      }
+      if (showStatus) setSyncStatus("Bereits aktuell (lokaler Stand ist neuer oder gleich).");
+      return false;
+    }catch(e){
+      if (showStatus) setSyncStatus("Laden fehlgeschlagen ("+e.message+")");
+      return false;
+    }
   }
 
   // ---------- Rendern ----------
@@ -1075,9 +1163,8 @@
     session.day.exercises.forEach((ex,i) => {
       if (session.weightsLogged[i]) state[currentProfile].weights[ex.code] = session.weightsLogged[i];
     });
-    saveState();
-
-    const totalSets = exercisesData.reduce((a,x) => a+x.setsCompleted, 0);
+    saveState(true);
+    if (cloudToken()) cloudPush();
     document.getElementById("sessDoneTime").textContent = durationActualMin;
     document.getElementById("sessDoneKcal").textContent = kcalInfo.kcal;
     document.getElementById("sessDoneSets").textContent = totalSets;
@@ -1240,10 +1327,29 @@
   document.querySelectorAll('input[name="ratio"]').forEach(input => input.addEventListener("change", () => { saveUIIntoProfile(currentProfile); renderProgram(state[currentProfile].program || []); }));
   document.getElementById("minimizeChip").addEventListener("change", () => saveUIIntoProfile(currentProfile));
 
+  document.getElementById("cloudSaveTokenBtn").addEventListener("click", () => {
+    const val = document.getElementById("cloudTokenInput").value.trim();
+    if (val && val !== "••••••••••••"){
+      localStorage.setItem(CLOUD_TOKEN_KEY, val);
+      document.getElementById("cloudTokenInput").value = "••••••••••••";
+    }
+    if (!cloudToken()){ setSyncStatus("Bitte zuerst ein Token eintragen."); return; }
+    cloudPush();
+  });
+  document.getElementById("cloudPullBtn").addEventListener("click", async () => {
+    if (!cloudToken()){ setSyncStatus("Bitte zuerst ein Token eintragen und verbinden."); return; }
+    const changed = await cloudPull(true);
+    if (changed) loadProfileIntoUI(currentProfile);
+  });
+
   document.getElementById("generateBtn").addEventListener("click", runGenerate);
   document.getElementById("regenBtn").addEventListener("click", runGenerate);
 
   loadState();
+  document.getElementById("cloudTokenInput").value = cloudToken() ? "••••••••••••" : "";
+  if (cloudToken()){
+    cloudPull(false).then(changed => { if (changed) loadProfileIntoUI(currentProfile); });
+  }
   loadProfileIntoUI(currentProfile);
 })();
 </script>
