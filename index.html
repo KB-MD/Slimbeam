@@ -329,6 +329,7 @@
     <div class="sess-cat" id="sessCat"></div>
     <div class="sess-name" id="sessName"></div>
     <div class="sess-cue" id="sessCue"></div>
+    <a class="ex-video" id="sessVideoLink" href="#" style="display:inline-block; margin-top:10px;">🎬 Video</a>
     <div class="sess-target" id="sessTarget"></div>
     <div class="sess-sets" id="sessSets"></div>
     <div class="sess-weight">
@@ -804,6 +805,7 @@
     document.getElementById("sessCat").textContent = ex.cat + " · " + ex.code;
     document.getElementById("sessName").textContent = ex.name;
     document.getElementById("sessCue").textContent = ex.cue;
+    document.getElementById("sessVideoLink").href = VIDEO_BASE + ex.code + ".mp4";
     document.getElementById("sessTarget").textContent = "Ziel: " + session.scheme.sets + " × " + session.scheme.reps + " · Pause " + session.scheme.pause + " · RPE " + session.scheme.rpe;
     const setsWrap = document.getElementById("sessSets");
     setsWrap.innerHTML = "";
