@@ -821,10 +821,31 @@
     if (!token) return;
     setSyncStatus("Synchronisiere …");
     try{
-      const dump = buildDump();
-      localStorage.setItem(STORE_KEY, JSON.stringify(dump));
+      const localDump = buildDump();
       const gistId = cloudGistId();
-      const payload = {description:"SlimBeam Trainingsplaner – Daten (privat)", public:false, files:{[GIST_FILENAME]:{content: JSON.stringify(dump)}}};
+      let mergedDump = localDump;
+      if (gistId){
+        // Erst aktuellen Cloud-Stand holen, damit ein Push nicht versehentlich
+        // das Profil der anderen Person überschreibt (z. B. Frau hat zwischenzeitlich
+        // auf ihrem Handy synchronisiert). Nur das eigene Profil wird aktualisiert.
+        try{
+          const res0 = await fetch("https://api.github.com/gists/"+gistId, {
+            headers: {"Authorization":"token "+token, "Accept":"application/vnd.github+json"}
+          });
+          if (res0.ok){
+            const data0 = await res0.json();
+            const file0 = data0.files && data0.files[GIST_FILENAME];
+            if (file0){
+              const cloudDump = JSON.parse(file0.content);
+              mergedDump = Object.assign({}, cloudDump, {_updatedAt: Date.now()});
+              mergedDump[currentProfile] = localDump[currentProfile];
+            }
+          }
+        }catch(e){ /* falls das fehlschlägt, wird trotzdem mit dem lokalen Stand weitergemacht */ }
+      }
+      localStorage.setItem(STORE_KEY, JSON.stringify(mergedDump));
+      applyDump(mergedDump); // übernimmt ggf. frischere Daten des Partner-Profils auch lokal
+      const payload = {description:"SlimBeam Trainingsplaner – Daten (privat)", public:false, files:{[GIST_FILENAME]:{content: JSON.stringify(mergedDump)}}};
       const url = gistId ? ("https://api.github.com/gists/"+gistId) : "https://api.github.com/gists";
       const res = await fetch(url, {
         method: gistId ? "PATCH" : "POST",
