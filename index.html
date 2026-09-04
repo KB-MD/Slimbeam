@@ -157,9 +157,10 @@
   .plate-sheet{background:var(--surface); width:100%; border-radius:16px 16px 0 0; padding:16px 16px calc(16px + var(--safe-b)); max-width:640px; margin:0 auto;}
   .plate-sheet h3{font-size:15px;}
   .plate-sheet .hint{margin:4px 0 14px;}
-  .plate-grid{display:grid; grid-template-columns:repeat(5,1fr); gap:8px;}
-  .plate-cell{aspect-ratio:1; border:1px solid var(--border); border-radius:var(--radius-s); background:var(--bg); font-size:16px; font-weight:700; color:var(--ink); cursor:pointer;}
-  .plate-cell.active{background:var(--wood); border-color:var(--wood); color:#fff;}
+  .plate-grid{display:flex; border:1px solid var(--border); border-radius:var(--radius-s); overflow:hidden;}
+  .plate-cell{flex:1; min-width:0; height:44px; border:0; border-left:1px solid var(--border); background:var(--bg); font-size:12px; font-weight:700; color:var(--ink); cursor:pointer; padding:0;}
+  .plate-cell:first-child{border-left:0;}
+  .plate-cell.active{background:var(--wood); color:#fff;}
   .plate-cell:active{background:var(--wood-tint);}
   .plate-sheet-actions{display:flex; gap:10px; margin-top:14px;}
   .plate-sheet-actions button{flex:1;}
@@ -200,19 +201,19 @@
   .sess-timers .l{display:block; font-size:11px; color:var(--ink-muted);}
   .sess-progress{height:4px; background:var(--border);}
   .sess-progress-bar{height:100%; background:var(--moss); transition:width .2s ease;}
-  .sess-body{padding:20px 16px; max-width:520px; margin:0 auto; width:100%;}
+  .sess-body{padding:14px 16px; max-width:520px; margin:0 auto; width:100%;}
   .sess-cat{font-size:12px; color:var(--wood-dark); font-weight:600; text-transform:uppercase; letter-spacing:.03em;}
-  .sess-name{font-size:22px; margin-top:4px;}
-  .sess-cue{font-size:14px; color:var(--ink-muted); margin-top:8px; line-height:1.5;}
-  .sess-target{margin-top:14px; font-size:13px; color:var(--ink);}
-  .sess-sets{display:flex; gap:8px; margin-top:12px; flex-wrap:wrap;}
-  .sess-set-btn{width:48px; height:48px; border-radius:50%; border:2px solid var(--border); background:var(--surface); font-weight:700; font-size:15px; color:var(--ink-muted); cursor:pointer;}
+  .sess-name{font-size:20px; margin-top:2px;}
+  .sess-cue{font-size:13.5px; color:var(--ink-muted); margin-top:6px; line-height:1.45;}
+  .sess-target{margin-top:10px; font-size:13px; color:var(--ink);}
+  .sess-sets{display:flex; gap:7px; margin-top:8px; flex-wrap:wrap;}
+  .sess-set-btn{width:42px; height:42px; border-radius:50%; border:2px solid var(--border); background:var(--surface); font-weight:700; font-size:14px; color:var(--ink-muted); cursor:pointer;}
   .sess-set-btn.done{background:var(--moss); border-color:var(--moss); color:#fff;}
-  .sess-weight{margin-top:18px;}
-  .sess-weight label{font-size:12.5px; color:var(--ink-muted); display:block; margin-bottom:6px;}
-  .sess-weight-btn{width:100%; height:48px; border:1px solid var(--border); border-radius:var(--radius-s); background:var(--surface); font-size:16px; font-weight:600; color:var(--ink); cursor:pointer; text-align:left; padding:0 14px;}
-  .sess-plate{font-size:12px; color:var(--wood-dark); margin-top:6px;}
-  .sess-nav{display:flex; gap:10px; margin-top:22px;}
+  .sess-weight{margin-top:12px;}
+  .sess-weight label{font-size:12px; color:var(--ink-muted); display:block; margin-bottom:4px;}
+  .sess-weight-btn{width:100%; height:44px; border:1px solid var(--border); border-radius:var(--radius-s); background:var(--surface); font-size:15px; font-weight:600; color:var(--ink); cursor:pointer; text-align:left; padding:0 14px;}
+  .sess-plate{font-size:11.5px; color:var(--wood-dark); margin-top:4px;}
+  .sess-nav{display:flex; gap:10px; margin-top:16px;}
   .sess-nav button{flex:1;}
   .btn-ghost{background:transparent; border:1px solid var(--border); color:var(--ink); border-radius:var(--radius-s); padding:13px; font-weight:600; font-size:14px; cursor:pointer;}
 
