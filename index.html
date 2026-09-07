@@ -530,7 +530,7 @@
     return hasVideo(ex.code) ? '<a class="ex-video" href="'+videoUrl(ex.code)+'">'+(small?'🎬':'🎬 Video')+'</a>' : '<span class="no-video">kein Video</span>';
   }
   const STORE_KEY = "slimbeamPlanner_v1";
-  const APP_VERSION = "2026-09-07-8";
+  const APP_VERSION = "2026-09-07-9";
 
   const POOL = {
     "Brust": [
@@ -760,7 +760,7 @@
     const met = MET_BY_PHASE[phase] * factor;
     return {kcal: Math.round(met*3.5*bodyWeightKg/200*durationMinutes), factor, hasRef};
   }
-  function esc(s){ return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+  function esc(s){ if (s===null||s===undefined) return ""; return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
 
   // Baut eine inline 15er-Segmentreihe zur Plattenauswahl. size: "compact" (Liste) oder "large" (Session).
   // code: bei Listenzeilen der Übungscode (für den Klick-Handler); bei der Session leer (eigener Handler dort).
@@ -1080,7 +1080,7 @@
                 '<span><b class="num">'+scheme.sets+'</b> × <b class="num">'+scheme.reps+'</b></span>'+
                 '<span>Pause <b class="num">'+scheme.pause+'</b></span>'+
                 '<span>RPE <b class="num">'+scheme.rpe+'</b></span>'+
-                '<span>'+esc(ex.cat)+' · '+esc(ex.code)+'</span>'+
+                '<span>'+esc(ex.cat)+(ex.code ? ' · '+esc(ex.code) : '')+'</span>'+
               '</div>'+
               (prog ? '<div class="prog-hint">💡 Empfehlung: '+prog.suggested+' Platten ('+esc(prog.reason)+')</div>' : '')+
               '<div class="ex-weight-row">'+
