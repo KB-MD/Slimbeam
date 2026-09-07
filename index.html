@@ -256,7 +256,9 @@
   <div class="tag">Individuelle, periodisierte Trainingsprogramme für den NOHRD SlimBeam</div>
   <div class="source">Kapitel- und Video-Struktur aus dem offiziellen <a href="https://www.nohrd.com/pub/media/pdf/slimbeam/slimbeam-trainingsbuch.pdf">SlimBeam Trainingshandbuch</a></div>
   <div id="updateBanner" hidden style="margin-top:8px; padding:8px 10px; background:var(--wood-tint); border:1px solid var(--wood); border-radius:6px; font-size:12px; color:var(--wood-dark);">
-    ⬆️ Neuere Version verfügbar — bitte die App über die ZIP-Datei neu herunterladen (Einstellungen unten enthalten den Link).
+    ⬆️ Neuere Version verfügbar.
+    <button type="button" id="updateDownloadBtn" style="display:block; width:100%; margin-top:6px; padding:9px; border:1px solid var(--wood-dark); border-radius:6px; background:var(--surface); color:var(--wood-dark); font-weight:600; font-size:12.5px; cursor:pointer;">🔄 Neue Version jetzt herunterladen</button>
+    <div style="margin-top:4px; font-size:11px;">Landet in „Downloads" — danach die neue index.html in deinen SlimBeam-Ordner verschieben (alte damit ersetzen).</div>
   </div>
 </header>
 
@@ -528,7 +530,7 @@
     return hasVideo(ex.code) ? '<a class="ex-video" href="'+videoUrl(ex.code)+'">'+(small?'🎬':'🎬 Video')+'</a>' : '<span class="no-video">kein Video</span>';
   }
   const STORE_KEY = "slimbeamPlanner_v1";
-  const APP_VERSION = "2026-09-07-1";
+  const APP_VERSION = "2026-09-07-2";
 
   const POOL = {
     "Brust": [
@@ -543,11 +545,13 @@
       {name:"Brustpresse vorgebeugt", code:"1-8", cue:"Aus leichter Vorbeuge beidarmig nach vorne drücken."},
       {name:"Butterfly / Flys", code:"1-9", cue:"Bogenförmige Öffnungs- und Schließbewegung der Arme auf Brusthöhe statt geradem Druck.", file:"flys"},
       {name:"Brustpresse Incline, mit Supination", code:"1-10", cue:"Kabel tief eingehängt, schräg nach oben-vorne drücken und den Unterarm dabei nach außen drehen — betont die obere Brust.", file:"chest_press_incline_supination"},
-      {name:"Einarmiger Crossover", code:"1-11", cue:"Einzelgriff diagonal über den Körper nach vorne-unten führen."}
+      {name:"Einarmiger Crossover", code:"1-11", cue:"Einzelgriff diagonal über den Körper nach vorne-unten führen."},
+      {name:"Cable Cross Incline einarmig", code:null, cue:"Einzelgriff, Kabel tief eingehängt, diagonal nach oben-vorne über den Körper führen — betont die obere Brust. Hinweis: in den Standbildern kaum von der Incline-Supination-Variante einarmig zu unterscheiden, evtl. dieselbe Übung mit anderem Namen.", file:"cable_cross_incline_one_arm"}
     ],
     "Rücken": [
       {name:"Geradarmiger Rückenzug", code:"2-0", cue:"Gestreckte Arme aus der Vorbeuge kontrolliert nach hinten zur Hüfte ziehen."},
-      {name:"Rudern vorgebeugt, beidarmig", code:"2-1", cue:"Aus der Vorbeuge beide Griffe zur Hüfte ziehen."},
+      {name:"Rudern vorgebeugt, breiter Griff", code:"2-1", cue:"Aus der Vorbeuge beide Griffe zur Hüfte ziehen, Griffe weit auseinander.", file:"bent_over_rows_broad"},
+      {name:"Rudern vorgebeugt, enger Griff", code:null, cue:"Aus der Vorbeuge beide Griffe zur Hüfte ziehen, Griffe eng zusammen.", file:"bent_over_rows_narrow"},
       {name:"Rudern vorgebeugt, einarmig", code:"2-2", cue:"Aus der Vorbeuge einarmig zur Hüfte ziehen."},
       {name:"Rudern tief vorgebeugt", code:"2-3", cue:"Aus tiefer Vorbeuge einarmig zur Hüfte ziehen."},
       {name:"Rudern über Kopf", code:"2-4", cue:"Griffe von oben nach hinten zur Schulter ziehen, Rumpf leicht zurückgelehnt."},
@@ -561,6 +565,12 @@
       {name:"Rückenstrecker sitzend", code:"2-12", cue:"Sitzend Griffe von oben zur Hüfte ziehen, Rumpf aufrichten."},
       {name:"Rückenstrecker sitzend, Langstange", code:"2-13", cue:"Sitzend Stange von oben zur Hüfte ziehen, Rumpf aufrichten."},
       {name:"Rudern sitzend an der Wand", code:"Z4", cue:"Sitzend an der Säule rudernd nach hinten ziehen."}
+    ],
+    "Bizeps": [
+      {name:"Bizepscurl beidarmig", code:null, cue:"Beide Griffe von unten zur Schulter beugen, Ellbogen bleiben am Körper fixiert.", file:"biceps_curls"},
+      {name:"Bizepscurl abwechselnd", code:null, cue:"Arme abwechselnd von unten zur Schulter beugen, Ellbogen bleiben am Körper fixiert.", file:"biceps_curls_alternating"},
+      {name:"Bizepscurl, seitlich geführt", code:null, cue:"Bizepscurl mit dem Ellbogen seitlich vom Körper weg statt eng am Körper geführt.", file:"biceps_curls_lat"},
+      {name:"Bizeps-Zug", code:null, cue:"Ziehende Bizeps-Bewegung mit abweichendem Kabelwinkel gegenüber dem klassischen Curl.", file:"biceps_pulls"}
     ],
     "Trizeps": [
       {name:"Trizepsdrücken einarmig", code:"3-0", cue:"Einzelgriff von oben nach unten strecken, Oberarm bleibt ruhig am Körper."},
@@ -604,12 +614,15 @@
       {name:"Kniender Ausfallschritt am Kabel", code:"6-2", cue:"Aus dem Kniestand in den Ausfallschritt nach vorne wechseln."},
       {name:"Ausfallschritt mit Armzug", code:"6-3", cue:"Ausfallschritt kombiniert mit einer Zugbewegung der Arme."},
       {name:"Kniebeuge tief", code:"6-4", cue:"Tiefe Hocke am Kabel, Fersen bleiben am Boden."},
-      {name:"Wadenheben am Kabel", code:"6-5", cue:"Auf die Fußballen heben und kontrolliert wieder absenken."},
+      {name:"Wadenheben am Kabel", code:"6-5", cue:"Auf die Fußballen heben und kontrolliert wieder absenken.", file:"calf_raises"},
       {name:"Ausfallschritt mit Beinschwung", code:"Z1", cue:"Im Ausfallschritt das hintere Bein kontrolliert nach vorne schwingen."},
       {name:"Ausfallschritt mit Beinschwung und Armzug", code:"Z2", cue:"Ausfallschritt mit Beinschwung kombiniert mit ziehender Armbewegung."},
       {name:"Standwaage mit Beinabduktion", code:"Z5", cue:"Stehend das gestreckte Bein seitlich vom Körper wegführen."},
       {name:"Beinabduktion seitlich, Fußschlaufe", code:"Z6", cue:"Fußschlaufe, Bein seitlich vom Körper wegführen, Rumpf stabil halten."},
-      {name:"Hüftabduktion seitlich", code:"Z7", cue:"Stehend das Bein seitlich anheben, Oberkörper aufrecht halten."}
+      {name:"Hüftabduktion seitlich", code:"Z7", cue:"Stehend das Bein seitlich anheben, Oberkörper aufrecht halten."},
+      {name:"Adduktoren-Kick einbeinig", code:null, cue:"An der Säule festhalten, das Bein einbeinig quer vor den Körper führen (Innenseite Oberschenkel).", file:"adductor_kicks"},
+      {name:"Abduktoren-Kick einbeinig", code:null, cue:"An der Säule festhalten, das Bein einbeinig seitlich vom Körper wegführen (Außenseite Oberschenkel/Gesäß).", file:"abductor_kicks"},
+      {name:"Gesäß-Kick einbeinig", code:null, cue:"An der Säule festhalten, das Bein einbeinig gestreckt nach hinten kicken (Gesäß).", file:"butt_kicks"}
     ],
     "Ganzkörper": [
       {name:"Ausfallschritt mit Armzug (Ganzkörper)", code:"K1", cue:"Ausfallschritt in die Knie kombiniert mit einer ziehenden Armbewegung."},
@@ -807,7 +820,8 @@
     return (t.includes("einarmig")||t.includes("einzelgriff")||t.includes("einzelzug")) ? "einzel" : "doppel";
   }
   function isUnilateral(ex){
-    return (ex.name+" "+ex.cue).toLowerCase().includes("einarmig");
+    const t = (ex.name+" "+ex.cue).toLowerCase();
+    return t.includes("einarmig") || t.includes("einbeinig");
   }
   function kgFromPlates(plates, pull, ratioStr){
     if(!plates || plates<=0) return null;
@@ -865,7 +879,7 @@
         // Sportwissenschaftliche Reihenfolge: große, komplexe Bewegungen zuerst (Beine, Ganzkörper,
         // Rücken, Brust), dann kleinere/isolierte Muskelgruppen (Schultern, Bauch, Trizeps zuletzt) —
         // gängige Trainingsempfehlung, um bei den anspruchsvollsten Übungen noch frisch zu sein.
-        const CAT_ORDER = {"Beine":1, "Ganzkörper":1, "Rücken":2, "Brust":2, "Schultern":3, "Bauch":4, "Trizeps":5};
+        const CAT_ORDER = {"Beine":1, "Ganzkörper":1, "Rücken":2, "Brust":2, "Schultern":3, "Bizeps":4, "Bauch":5, "Trizeps":6};
         exercises = exercises.slice().sort((a,b) => (CAT_ORDER[a.cat]||9) - (CAT_ORDER[b.cat]||9));
         if (opts.minimize){
           // Innerhalb derselben Reihenfolge-Stufe zusätzlich nach Anbauteil gruppieren, um Umbauten zu sparen
@@ -1085,7 +1099,7 @@
           const prog = progressionHint(ex.code);
           row.innerHTML =
             '<div class="ex-n num">'+(ei+1)+'</div>'+
-            (useLocalVideos() && ex.code ? '<img class="ex-thumb-img" data-path="'+esc(localVideoUrl(ex))+'" alt="">' : '')+
+            (useLocalVideos() && (ex.code || ex.file) ? '<img class="ex-thumb-img" data-path="'+esc(localVideoUrl(ex))+'" alt="">' : '')+
             '<div class="ex-main">'+
               '<div class="ex-name">'+esc(ex.name)+'</div>'+
               '<div class="ex-cue">'+esc(ex.cue)+'</div>'+
@@ -1255,7 +1269,7 @@
     document.getElementById("sessCat").textContent = ex.cat + " · " + ex.code;
     document.getElementById("sessName").textContent = ex.name;
     const sessThumb = document.getElementById("sessThumbImg");
-    if (useLocalVideos() && ex.code){
+    if (useLocalVideos() && (ex.code || ex.file)){
       sessThumb.style.display = "";
       sessThumb.dataset.path = localVideoUrl(ex);
       sessThumb.src = "";
@@ -1561,6 +1575,26 @@
       }
     })
     .catch(() => { /* offline oder kein Netz — kein Update-Hinweis, kein Fehler */ });
+  document.getElementById("updateDownloadBtn").addEventListener("click", async () => {
+    const btn = document.getElementById("updateDownloadBtn");
+    const original = btn.textContent;
+    btn.textContent = "Lade …"; btn.disabled = true;
+    try{
+      const res = await fetch("https://raw.githubusercontent.com/KB-MD/Slimbeam/main/index.html", {cache:"no-store"});
+      if (!res.ok) throw new Error("HTTP "+res.status);
+      const text = await res.text();
+      const blob = new Blob([text], {type:"text/html"});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url; a.download = "index.html";
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 3000);
+      btn.textContent = "✓ Heruntergeladen";
+    }catch(e){
+      btn.textContent = "Fehlgeschlagen — nochmal versuchen";
+      btn.disabled = false;
+    }
+  });
   document.getElementById("cloudTokenInput").value = cloudToken() ? "••••••••••••" : "";
   if (cloudToken()){
     cloudPull(false).then(changed => { if (changed) loadProfileIntoUI(currentProfile); });
