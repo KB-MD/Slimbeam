@@ -147,6 +147,8 @@
   .ex-video{flex:0 0 auto; align-self:center; padding:8px 11px; border:1px solid var(--wood); border-radius:999px; color:var(--wood-dark); background:transparent; font-family:'Inter',sans-serif; font-size:12.5px; font-weight:600; min-height:36px; cursor:pointer; text-decoration:none;}
   .ex-video:active{background:var(--wood-tint);}
   .no-video{flex:0 0 auto; align-self:center; font-size:11.5px; color:var(--ink-muted); font-style:italic; white-space:nowrap;}
+  .ex-thumb-img{flex:0 0 48px; width:48px; height:48px; border-radius:8px; object-fit:cover; background:var(--wood-tint); align-self:flex-start;}
+  #sessThumbImg{border-radius:10px; object-fit:cover; background:var(--wood-tint);}
   .local-video-wrap{margin-top:8px; width:100%;}
   .local-video-wrap video{width:100%; border-radius:8px; background:#000; display:block;}
   .local-video-error{font-size:11px; color:var(--danger); margin-top:4px;}
@@ -385,7 +387,9 @@
     <p><b>Verlauf:</b> Wird lokal im Browser gespeichert. Da die Datei lokal (nicht über einen Webserver) geöffnet wird, kann Safari diesen Speicher unter Umständen nicht zuverlässig behalten (z. B. nach Zurücksetzen der Website-Daten) — nutze bei Bedarf „Verlauf exportieren" als Sicherung.</p>
     <p><b>Rechts/Links-Regel:</b> Wird eine einarmige Übung ausgewählt, folgt automatisch direkt danach dieselbe Übung für die Gegenseite (rechts/links), damit beide Körperseiten im gleichen Umfang trainiert werden. Das kann die tatsächliche Übungsanzahl eines Tages leicht über die Zielvorgabe hinaus erhöhen — Dauer/Kalorien werden entsprechend neu berechnet.</p>
     <p><b>Adaptive Progression:</b> Sobald du eine Übung mindestens einmal mit eingetragenem Gewicht abgeschlossen hast, zeigt die App beim nächsten Mal eine Empfehlung: alle geplanten Sätze geschafft → +1 Platte (Progressive Overload); weniger als die Hälfte geschafft → −1 Platte; dazwischen → Gewicht halten. Das ist eine einfache, nachvollziehbare Regel basierend auf deinem eigenen Verlauf — kein automatisches Verstellen, du entscheidest bei der Plattenwahl weiterhin selbst.</p>
-    <p><b>Aufwärmen/Cool-down:</b> Jeder Tag enthält 3 Aufwärm- (leicht, dynamisch, am Gerät) und 3 Cool-down-Übungen (sanfte Dehnung, teils am Gerät) — beides bereits erfahrungsbasierte, leichte Varianten realer Katalog-Übungen. Die Zeit dafür war schon vorher in der Dauer-Schätzung enthalten (5 Min. Aufwärmen, 2 Min. Cool-down) und wird jetzt nur mit konkreten Übungen gefüllt.</p>
+    <p><b>Übungsreihenfolge (sportwissenschaftlich):</b> Innerhalb eines Tages werden große/komplexe Muskelgruppen zuerst trainiert (Beine, Ganzkörper, Rücken, Brust), kleinere/isolierte zuletzt (Schultern, Bauch, Trizeps) — gängige Trainingsempfehlung, damit die anspruchsvollsten Bewegungen noch bei voller Kraft ausgeführt werden. „Umbauten minimieren" gruppiert innerhalb dieser Reihenfolge zusätzlich nach Anbauteil, ändert die große Reihenfolge aber nicht mehr.</p>
+    <p><b>Aufwärmen/Cool-down:</b> Jeder Tag enthält 3 Aufwärm-Übungen (leicht, dynamisch, am Gerät) und 3 Cool-down-Übungen — Cool-down sind bewusst reine Dehnungen ohne Gerät (Körpergewicht), da nach dem Training keine Kabelspannung mehr nötig ist. Die Zeit dafür war schon vorher in der Dauer-Schätzung enthalten (5 Min. Aufwärmen, 2 Min. Cool-down) und wird jetzt mit konkreten Übungen gefüllt.</p>
+    <p><b>Video-Standbilder:</b> Bei aktivierten lokalen Videos zieht die App automatisch ein Vorschaubild aus jeder Videodatei — das passiert direkt im Browser (ein kurzer Frame wird per Canvas eingelesen), es wird nichts hochgeladen oder gespeichert außer im Zwischenspeicher der laufenden Seite.</p>
     <p><b>Video-Verfügbarkeit:</b> Für die 26 Zubehör-Übungen (Codes K1–K5, C1–C5, Z1–Z16) ist kein Video verfügbar — die entsprechenden Links sind auf NOHRDs eigenem Server nicht mehr erreichbar (bestätigt per direktem QR-Code-Scan aus dem Original-Handbuch), vermutlich seit einer Umstrukturierung nach Drucklegung. Die App zeigt das ehrlich als „kein Video" an, statt auf einen toten Link zu verweisen. Die Videos zu den 56 nummerierten Kapitel-Übungen (1-0 bis 6-5) funktionieren weiterhin.</p>
   </div>
 
@@ -412,6 +416,7 @@
       <button class="btn-primary" id="sessWarmupNext">Aufwärmen fertig, weiter →</button>
     </div>
     <div id="sessExerciseView" hidden>
+      <img class="ex-thumb-img" id="sessThumbImg" alt="" style="width:100%; height:160px; margin-bottom:10px; display:none;">
       <div class="sess-cat" id="sessCat"></div>
       <div class="sess-name" id="sessName"></div>
       <div class="sess-cue" id="sessCue"></div>
@@ -462,9 +467,39 @@
   // Codes der Kapitel 1-6 (numerisch) sind bestätigt erreichbar. Die K/C/Z-Zubehörseiten
   // (Buchstaben-Codes) sind laut Nutzer-Test auch über den QR-Code aus dem Original-Handbuch
   // nicht mehr erreichbar (404) — vermutlich seit einer Umstrukturierung bei NOHRD.
-  function hasVideo(code){ return /^\d/.test(code); }
-  function useLocalVideos(){ return localStorage.getItem("slimbeamLocalVideos") === "1"; }
+  function hasVideo(code){ return !!code && /^\d/.test(code); }
+  function useLocalVideos(){ const v = localStorage.getItem("slimbeamLocalVideos"); return v === null ? true : v === "1"; }
   function localVideoUrl(ex){ return "videos/" + (ex.file || ex.code) + ".mp4"; }
+
+  // Erzeugt Standbilder aus den lokalen Videodateien direkt im Browser (Canvas-Snapshot).
+  // Es wird nichts hochgeladen — die Verarbeitung passiert ausschließlich lokal auf dem Gerät.
+  const thumbCache = {};
+  function loadThumb(imgEl, path){
+    if (thumbCache[path]){ imgEl.src = thumbCache[path]; return; }
+    const v = document.createElement("video");
+    v.muted = true; v.playsInline = true; v.preload = "metadata";
+    v.addEventListener("loadeddata", () => {
+      try{ v.currentTime = Math.min(1.5, (v.duration||3)/3); }catch(e){}
+    });
+    v.addEventListener("seeked", () => {
+      try{
+        const c = document.createElement("canvas");
+        c.width = v.videoWidth || 320; c.height = v.videoHeight || 240;
+        c.getContext("2d").drawImage(v, 0, 0, c.width, c.height);
+        const url = c.toDataURL("image/jpeg", 0.7);
+        thumbCache[path] = url;
+        imgEl.src = url;
+      }catch(e){}
+    }, {once:true});
+    v.addEventListener("error", () => { imgEl.style.visibility = "hidden"; }, {once:true});
+    v.src = path;
+  }
+  function generateThumbnailsIn(container){
+    if (!useLocalVideos() || !container) return;
+    container.querySelectorAll(".ex-thumb-img").forEach(img => {
+      if (img.dataset.path) loadThumb(img, img.dataset.path);
+    });
+  }
   function videoBlockHtml(ex, small){
     if (useLocalVideos()){
       return '<div class="local-video-wrap'+(small?' compact':'')+'" data-code="'+esc(ex.code)+'">'+
@@ -584,10 +619,13 @@
     {name:"Rudern stehend, geradarmig (leicht)", code:"2-8", cue:"Arme gestreckt locker nach hinten führen, ca. 12–15 Wiederholungen, oberen Rücken aktivieren."}
   ];
   const COOLDOWN_POOL = [
-    {name:"Seitdehnung am Kabel (Trizeps/Lat)", code:"3-5", cue:"Griff über Kopf, Oberkörper sanft zur Seite neigen und 20–30 Sekunden halten. Seite wechseln."},
-    {name:"Seitliche Rumpfdehnung am Kabel", code:"5-3", cue:"Seitlich zum Zug stehen, Oberkörper sanft zur Seite neigen und 20–30 Sekunden halten."},
-    {name:"Brustöffner-Dehnung am Kabel", code:"1-9", cue:"Arme bei leichtem Zug weit geöffnet halten, Brust bewusst öffnen und 20–30 Sekunden halten."},
-    {name:"Schulter-/Rückendehnung am Kabel", code:"2-11", cue:"Arme seitlich bei leichtem Zug nach hinten führen und die Position 20–30 Sekunden halten."}
+    {name:"Nackendehnung seitlich", code:null, cue:"Kopf sanft mit der Hand zur Seite ziehen, bis eine Dehnung im seitlichen Nacken spürbar ist, 20–30 Sekunden halten, Seite wechseln."},
+    {name:"Schulterdehnung im Überzug", code:null, cue:"Einen Arm gestreckt vor dem Körper führen, mit dem anderen Arm sanft zum Körper ziehen, 20–30 Sekunden halten, Seite wechseln."},
+    {name:"Trizeps-/Latdehnung über Kopf", code:null, cue:"Einen Arm gebeugt hinter den Kopf führen, mit der anderen Hand den Ellbogen sanft nach unten drücken, 20–30 Sekunden halten, Seite wechseln."},
+    {name:"Brustdehnung im Stand", code:null, cue:"Beide Hände hinter dem Rücken verschränken, Arme leicht anheben und Brust nach vorne öffnen, 20–30 Sekunden halten."},
+    {name:"Hüftbeugerdehnung im Ausfallschritt", code:null, cue:"Tiefer Ausfallschritt, Becken leicht nach vorne schieben, bis eine Dehnung vorne an der Hüfte des hinteren Beins spürbar ist, 20–30 Sekunden halten, Seite wechseln."},
+    {name:"Rückendehnung im Vierfüßlerstand (Katze-Kuh)", code:null, cue:"Im Vierfüßlerstand abwechselnd den Rücken rund machen und durchhängen lassen, langsam und kontrolliert, ca. 6–8 Wiederholungen."},
+    {name:"Waden-/Beinrückseitendehnung im Stand", code:null, cue:"Ein Bein gestreckt nach vorne aufstellen, Oberkörper leicht nach vorne beugen, bis eine Dehnung in Wade/Oberschenkelrückseite spürbar ist, 20–30 Sekunden halten, Seite wechseln."}
   ];
   const WARMUP_COUNT = 3, COOLDOWN_COUNT = 3;
 
@@ -805,8 +843,18 @@
             exercises.push({cat, name:ex.name, code:ex.code, cue:ex.cue});
           }
         });
+        // Sportwissenschaftliche Reihenfolge: große, komplexe Bewegungen zuerst (Beine, Ganzkörper,
+        // Rücken, Brust), dann kleinere/isolierte Muskelgruppen (Schultern, Bauch, Trizeps zuletzt) —
+        // gängige Trainingsempfehlung, um bei den anspruchsvollsten Übungen noch frisch zu sein.
+        const CAT_ORDER = {"Beine":1, "Ganzkörper":1, "Rücken":2, "Brust":2, "Schultern":3, "Bauch":4, "Trizeps":5};
+        exercises = exercises.slice().sort((a,b) => (CAT_ORDER[a.cat]||9) - (CAT_ORDER[b.cat]||9));
         if (opts.minimize){
-          exercises = exercises.slice().sort((a,b) => inferSetup(a).localeCompare(inferSetup(b)));
+          // Innerhalb derselben Reihenfolge-Stufe zusätzlich nach Anbauteil gruppieren, um Umbauten zu sparen
+          exercises = exercises.slice().sort((a,b) => {
+            const oa = CAT_ORDER[a.cat]||9, ob = CAT_ORDER[b.cat]||9;
+            if (oa !== ob) return oa - ob;
+            return inferSetup(a).localeCompare(inferSetup(b));
+          });
         }
         const durationSec = dayDurationSeconds(scheme, exercises.length);
         const durationMin = Math.round(durationSec/60);
@@ -959,7 +1007,7 @@
     items.forEach(it => {
       inner += '<div class="sub-ex"><div class="sub-ex-main"><div class="sub-ex-name">'+esc(it.name)+'</div>'+
         '<div class="sub-ex-cue">'+esc(it.cue)+' · '+timeLabel+'</div></div>'+
-        (hasVideo(it.code) || useLocalVideos() ? videoBlockHtml(it, true) : '<span class="no-video">kein Video</span>')+'</div>';
+        (it.code && (hasVideo(it.code) || useLocalVideos()) ? videoBlockHtml(it, true) : '')+'</div>';
     });
     wrap.innerHTML = inner;
     return wrap;
@@ -1015,6 +1063,7 @@
           const prog = progressionHint(ex.code);
           row.innerHTML =
             '<div class="ex-n num">'+(ei+1)+'</div>'+
+            (useLocalVideos() && ex.code ? '<img class="ex-thumb-img" data-path="'+esc(localVideoUrl(ex))+'" alt="">' : '')+
             '<div class="ex-main">'+
               '<div class="ex-name">'+esc(ex.name)+'</div>'+
               '<div class="ex-cue">'+esc(ex.cue)+'</div>'+
@@ -1048,6 +1097,7 @@
       det.appendChild(body);
       container.appendChild(det);
     });
+    generateThumbnailsIn(container);
   }
 
   document.getElementById("program").addEventListener("click", (e) => {
@@ -1116,7 +1166,7 @@
     wrap.innerHTML = items.map(it =>
       '<div class="sub-ex"><div class="sub-ex-main"><div class="sub-ex-name">'+esc(it.name)+'</div>'+
       '<div class="sub-ex-cue">'+esc(it.cue)+'</div></div>'+
-      (hasVideo(it.code) || useLocalVideos() ? videoBlockHtml(it, true) : '<span class="no-video">kein Video</span>')+'</div>'
+      (it.code && (hasVideo(it.code) || useLocalVideos()) ? videoBlockHtml(it, true) : '')+'</div>'
     ).join("");
   }
   function startSession(weekIndex, dayIndex){
@@ -1165,6 +1215,15 @@
     document.getElementById("sessProgressBar").style.width = Math.round(((session.exIndex)/session.day.exercises.length)*100)+"%";
     document.getElementById("sessCat").textContent = ex.cat + " · " + ex.code;
     document.getElementById("sessName").textContent = ex.name;
+    const sessThumb = document.getElementById("sessThumbImg");
+    if (useLocalVideos() && ex.code){
+      sessThumb.style.display = "";
+      sessThumb.dataset.path = localVideoUrl(ex);
+      sessThumb.src = "";
+      loadThumb(sessThumb, localVideoUrl(ex));
+    } else {
+      sessThumb.style.display = "none";
+    }
     document.getElementById("sessCue").textContent = ex.cue;
     const vLink = document.getElementById("sessVideoLink");
     const localWrap = document.getElementById("sessLocalVideoWrap");
