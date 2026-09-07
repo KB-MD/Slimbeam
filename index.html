@@ -530,19 +530,15 @@
     return hasVideo(ex.code) ? '<a class="ex-video" href="'+videoUrl(ex.code)+'">'+(small?'🎬':'🎬 Video')+'</a>' : '<span class="no-video">kein Video</span>';
   }
   const STORE_KEY = "slimbeamPlanner_v1";
-  const APP_VERSION = "2026-09-07-4";
+  const APP_VERSION = "2026-09-07-5";
 
   const POOL = {
     "Brust": [
       {name:"Brustpresse in Schrittstellung", code:"1-0", cue:"Beidarmiger Kabelzug in Schrittstellung auf Brusthöhe nach vorne drücken.", file:"chest_press"},
-      {name:"Brustpresse, enger Griff", code:"1-1", cue:"Griffe eng vor dem Körper führen und nach vorne strecken."},
       {name:"Brustpresse Decline (obere Anschlagshöhe)", code:"1-2", cue:"Kabel hoch eingehängt, schräg nach unten-vorne drücken — betont die untere Brust.", file:"chest_press_decline"},
-      {name:"Brustpresse mit Seilgriff", code:"1-3", cue:"Seilgriffe von Brusthöhe kontrolliert nach vorne strecken."},
       {name:"Brustpresse Incline einarmig, mit Supination", code:"1-4", cue:"Einzelgriff, Kabel tief eingehängt, schräg nach oben-vorne drücken und den Unterarm dabei nach außen drehen — betont die obere Brust.", file:"chest_press_incline_supination_one_arm"},
       {name:"Brustpresse Decline einarmig", code:"1-5", cue:"Einzelgriff, Kabel hoch eingehängt, schräg nach unten-vorne drücken — betont die untere Brust.", file:"chest_press_decline_one_arm"},
       {name:"Brustpresse einarmig", code:"1-6", cue:"Einzelgriff einarmig von Brusthöhe nach vorne drücken, Rumpf stabil halten.", file:"chest_press_one_arm"},
-      {name:"Einarmiger Zug mit Seilgriff", code:"1-7", cue:"Seilgriff einarmig von Brusthöhe nach vorne führen."},
-      {name:"Brustpresse vorgebeugt", code:"1-8", cue:"Aus leichter Vorbeuge beidarmig nach vorne drücken."},
       {name:"Butterfly / Flys", code:"1-9", cue:"Bogenförmige Öffnungs- und Schließbewegung der Arme auf Brusthöhe statt geradem Druck.", file:"flys"},
       {name:"Flys Incline", code:null, cue:"Kabel tief eingehängt, bogenförmige Öffnungs-/Schließbewegung schräg nach oben — betont die obere Brust.", file:"flys_incline"},
       {name:"Flys Decline", code:null, cue:"Kabel hoch eingehängt, bogenförmige Öffnungs-/Schließbewegung schräg nach unten — betont die untere Brust.", file:"flys_decline"},
@@ -551,22 +547,13 @@
       {name:"Flys Egyptian", code:null, cue:"Fly-Variante mit seitlicher Rumpfneigung/-rotation während der Bewegung (genaue Ausführung laut Bezeichnung, nicht abschließend verifiziert).", file:"flys_egyptian"},
       {name:"Flys Pyramid", code:null, cue:"Fly-Variante mit überkopf geführtem Zug (genaue Ausführung laut Bezeichnung, nicht abschließend verifiziert).", file:"flys_pyramid"},
       {name:"Brustpresse Incline, mit Supination", code:"1-10", cue:"Kabel tief eingehängt, schräg nach oben-vorne drücken und den Unterarm dabei nach außen drehen — betont die obere Brust.", file:"chest_press_incline_supination"},
-      {name:"Einarmiger Crossover", code:"1-11", cue:"Einzelgriff diagonal über den Körper nach vorne-unten führen."},
       {name:"Cable Cross Incline einarmig", code:null, cue:"Einzelgriff, Kabel tief eingehängt, diagonal nach oben-vorne über den Körper führen — betont die obere Brust. Hinweis: in den Standbildern kaum von der Incline-Supination-Variante einarmig zu unterscheiden, evtl. dieselbe Übung mit anderem Namen.", file:"cable_cross_incline_one_arm"}
     ],
     "Rücken": [
       {name:"Geradarmiger Rückenzug", code:"2-0", cue:"Gestreckte Arme aus der Vorbeuge kontrolliert nach hinten zur Hüfte ziehen.", file:"pull_down_straight_arms"},
       {name:"Rudern vorgebeugt, breiter Griff", code:"2-1", cue:"Aus der Vorbeuge beide Griffe zur Hüfte ziehen, Griffe weit auseinander.", file:"bent_over_rows_broad"},
       {name:"Rudern vorgebeugt, enger Griff", code:null, cue:"Aus der Vorbeuge beide Griffe zur Hüfte ziehen, Griffe eng zusammen.", file:"bent_over_rows_narrow"},
-      {name:"Rudern vorgebeugt, einarmig", code:"2-2", cue:"Aus der Vorbeuge einarmig zur Hüfte ziehen."},
-      {name:"Rudern tief vorgebeugt", code:"2-3", cue:"Aus tiefer Vorbeuge einarmig zur Hüfte ziehen."},
-      {name:"Rudern über Kopf", code:"2-4", cue:"Griffe von oben nach hinten zur Schulter ziehen, Rumpf leicht zurückgelehnt."},
-      {name:"Rudern über Kopf, einarmig", code:"2-5", cue:"Einzelgriff von oben nach hinten zur Schulter ziehen."},
       {name:"Latzug sitzend", code:"2-6", cue:"Sitzend Griffe von oben zur Brust ziehen, Schulterblätter aktiv nach unten führen.", file:"pull_downs"},
-      {name:"Latzug sitzend, Langstange", code:"2-7", cue:"Sitzend Stange von oben zur Brust ziehen."},
-      {name:"Rudern stehend, geradarmig", code:"2-8", cue:"Arme gestreckt von vorne nach hinten zur Hüfte führen."},
-      {name:"Rudern stehend, breiter Zug", code:"2-9", cue:"Arme seitlich weit ausholend nach hinten ziehen, Schulterblätter zusammenführen."},
-      {name:"Latzug stehend, hinter Kopf", code:"2-10", cue:"Stange von oben hinter den Kopf zur Schulter ziehen."},
       {name:"Reverse Fly am Kabel", code:"2-11", cue:"Arme seitlich in Schulterhöhe nach hinten führen, betont hintere Schulter und oberen Rücken.", file:"flys_reverse"},
       {name:"Latzug, kurzer Bewegungsradius", code:null, cue:"Wie Latzug sitzend, aber mit reduziertem Bewegungsradius (kürzerer Zugweg).", file:"pull_down"},
       {name:"Geradarmiger Rückenzug, kurzer Radius", code:null, cue:"Wie geradarmiger Rückenzug, aber mit reduziertem Bewegungsradius.", file:"pull_down_straight_arms_short"},
@@ -574,8 +561,6 @@
       {name:"Latzug frontal, stehend", code:null, cue:"Stehend Griff von oben nach vorne unten zur Brust ziehen.", file:"lat_pull_front"},
       {name:"Latzug frontal, kurzer Radius", code:null, cue:"Wie Latzug frontal stehend, aber mit reduziertem Bewegungsradius.", file:"lat_pull_front_short"},
       {name:"Reverse Fly einarmig", code:null, cue:"Arm seitlich in Schulterhöhe einarmig nach hinten führen, betont hintere Schulter und oberen Rücken.", file:"fly_reverse_one_arm"},
-      {name:"Rückenstrecker sitzend", code:"2-12", cue:"Sitzend Griffe von oben zur Hüfte ziehen, Rumpf aufrichten."},
-      {name:"Rückenstrecker sitzend, Langstange", code:"2-13", cue:"Sitzend Stange von oben zur Hüfte ziehen, Rumpf aufrichten."},
       {name:"Rudern sitzend an der Wand", code:"Z4", cue:"Sitzend an der Säule rudernd nach hinten ziehen."}
     ],
     "Bizeps": [
@@ -586,37 +571,17 @@
     ],
     "Trizeps": [
       {name:"Dips (unterstützt)", code:null, cue:"Sitzend an der Gerätebasis abstützen, Arme beugen und strecken, Körper dabei absenken und anheben.", file:"easy_dips"},
-      {name:"Trizepsdrücken einarmig", code:"3-0", cue:"Einzelgriff von oben nach unten strecken, Oberarm bleibt ruhig am Körper."},
-      {name:"Trizepsdrücken einarmig, tief", code:"3-1", cue:"Einzelgriff aus tiefer Position nach unten strecken."},
-      {name:"Trizepsdrücken beidarmig", code:"3-2", cue:"Beide Griffe von Brusthöhe nach unten strecken, Ellbogen fixiert."},
-      {name:"Trizepsdrücken beidarmig, tief", code:"3-3", cue:"Beide Griffe aus tiefer Ausgangsposition nach unten strecken."},
-      {name:"Trizepsdrücken über Kopf", code:"3-4", cue:"Griff von hinten über den Kopf nach unten strecken."},
-      {name:"Trizeps-Seitneige", code:"3-5", cue:"Griff über Kopf, Oberkörper seitlich neigen, Arm gestreckt halten."},
       {name:"Trizeps-Kickback einarmig in Vorbeuge", code:"3-6", cue:"Aus der Vorbeuge den gestreckten Arm einarmig kontrolliert nach hinten führen.", file:"kicks_back_one_arm"},
-      {name:"Trizeps-Kickback tief in Vorbeuge", code:"3-7", cue:"Aus tiefer Vorbeuge den gestreckten Arm nach hinten führen."},
       {name:"Trizepsdrücken sitzend", code:"Z3", cue:"Sitzend am Gerät die Arme nach unten strecken."}
     ],
     "Schultern": [
-      {name:"Seitheben am Kabel", code:"4-0", cue:"Arm seitlich von unten bis auf Schulterhöhe anheben."},
-      {name:"Frontheben, beidarmig kurz", code:"4-1", cue:"Beide Arme kurz vor dem Körper anheben."},
-      {name:"Seitheben, Arm über Kopf", code:"4-2", cue:"Arm seitlich bis über Kopfhöhe anheben."},
       {name:"Frontheben am Kabel", code:"4-3", cue:"Beide Arme von unten nach vorne/oben bis Schulterhöhe anheben.", file:"front_raises"},
       {name:"Frontheben einarmig", code:null, cue:"Ein Arm von unten nach vorne/oben bis Schulterhöhe anheben.", file:"front_raise_one_arm"},
-      {name:"Frontheben mit Supination", code:null, cue:"Beide Arme von unten nach vorne/oben anheben und den Unterarm dabei nach außen drehen.", file:"front_raise_supination"},
-      {name:"Seitheben tief-hoch", code:"4-4", cue:"Arm von tief unten seitlich bis über Kopf anheben."},
-      {name:"Schulterdrücken über Kopf", code:"4-5", cue:"Griffe von Schulterhöhe kontrolliert nach oben drücken."},
-      {name:"Diagonalzug für die Schulter", code:"4-6", cue:"Zug von unten diagonal über den Körper nach oben führen."},
-      {name:"Diagonalzug, weiter Radius", code:"4-7", cue:"Zug von unten diagonal weit nach oben-außen führen."},
-      {name:"Schulterdrücken über Kopf, Seilgriff", code:"4-8", cue:"Seilgriff von der Schulter über Kopf nach oben strecken."},
-      {name:"Schulterheben (Shrug)", code:"4-9", cue:"Schultern gegen den Widerstand gerade nach oben ziehen."}
+      {name:"Frontheben mit Supination", code:null, cue:"Beide Arme von unten nach vorne/oben anheben und den Unterarm dabei nach außen drehen.", file:"front_raise_supination"}
     ],
     "Bauch": [
       {name:"Rotationszug diagonal", code:"5-0", cue:"Griff von der Seite diagonal vor dem Körper nach vorne führen, Rumpf kontrolliert mitdrehen lassen.", file:"diagonal_rotation"},
-      {name:"Holzhacker-Zug (Woodchop)", code:"5-1", cue:"Aus der Vorbeuge diagonal von unten nach oben über den Körper ziehen."},
-      {name:"Kniender Crunch am Kabel", code:"5-2", cue:"Sitzend den Oberkörper gegen den Widerstand einrollen."},
-      {name:"Seitliche Rumpfbeuge am Kabel", code:"5-3", cue:"Seitlich zum Zug stehen und den Oberkörper kontrolliert zur Seite neigen."},
       {name:"Rumpfdrehung stehend", code:"5-4", cue:"Stehend den Oberkörper gegen den Kabelwiderstand kontrolliert rotieren.", file:"core_rotation"},
-      {name:"Pallof-Press-Variante", code:"5-5", cue:"Seitlich zum Zug stehen, Griff gerade vom Körper wegdrücken, Rotation aktiv verhindern."},
       {name:"Rumpfrotation einbeinig im Stand", code:null, cue:"Auf einem Bein stehend (anderes Knie angehoben) den Griff kontrolliert vor dem Körper herüberziehen — kombiniert Rotation mit Gleichgewicht.", file:"horizontal_rotation_one_leg"},
       {name:"Crunch liegend mit Fußschlaufen", code:"Z8", cue:"Liegend die Knie gegen den Widerstand zur Brust ziehen."},
       {name:"Crunch aufrecht mit Fußschlaufen", code:"Z9", cue:"Liegend mit angewinkelten Beinen den Oberkörper einrollen."},
@@ -625,11 +590,6 @@
       {name:"Reverse Crunch", code:"Z12", cue:"Liegend das Becken gegen den Widerstand aufrollen."}
     ],
     "Beine": [
-      {name:"Kabel-Kniebeuge", code:"6-0", cue:"Griff vor der Brust halten, in die Hocke gehen und wieder aufrichten."},
-      {name:"Ausfallschritt am Kabel", code:"6-1", cue:"Aus dem Stand in einen tiefen Ausfallschritt gehen, Knie kontrolliert absenken."},
-      {name:"Kniender Ausfallschritt am Kabel", code:"6-2", cue:"Aus dem Kniestand in den Ausfallschritt nach vorne wechseln."},
-      {name:"Ausfallschritt mit Armzug", code:"6-3", cue:"Ausfallschritt kombiniert mit einer Zugbewegung der Arme."},
-      {name:"Kniebeuge tief", code:"6-4", cue:"Tiefe Hocke am Kabel, Fersen bleiben am Boden."},
       {name:"Wadenheben am Kabel", code:"6-5", cue:"Auf die Fußballen heben und kontrolliert wieder absenken.", file:"calf_raises"},
       {name:"Ausfallschritt mit Beinschwung", code:"Z1", cue:"Im Ausfallschritt das hintere Bein kontrolliert nach vorne schwingen."},
       {name:"Ausfallschritt mit Beinschwung und Armzug", code:"Z2", cue:"Ausfallschritt mit Beinschwung kombiniert mit ziehender Armbewegung."},
@@ -659,6 +619,7 @@
       {name:"Klimmzug mit Beinhub", code:"Z15", cue:"Klimmzug kombiniert mit gestrecktem Beinheben."},
       {name:"Klimmzug breiter Griff", code:"Z16", cue:"Weiter Griff an der Stange, Körper nach oben ziehen, betont Rücken und Bizeps."}
     ]
+
   };
   const CATS = Object.keys(POOL);
 
