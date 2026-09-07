@@ -1393,27 +1393,17 @@
     });
     saveState(true);
     if (cloudToken()) cloudPush();
-    document.getElementById("sessDoneTime").textContent = durationActualMin;
-    document.getElementById("sessDoneKcal").textContent = kcalInfo.kcal;
-    document.getElementById("sessDoneSets").textContent = totalSets;
-    document.getElementById("sessDoneNote").textContent = kcalInfo.hasRef
-      ? "Kalorien unter Berücksichtigung deiner eingetragenen Gewichte im Vergleich zu früheren Einheiten geschätzt."
-      : "Kalorien nach Trainingsphase geschätzt — mit mehr Verlauf berücksichtigt die Schätzung künftig auch deine Gewichtsentwicklung.";
-    document.getElementById("sessExerciseView").hidden = true;
-    document.getElementById("sessCooldownView").hidden = true;
-    document.getElementById("sessDoneView").hidden = false;
 
     renderHistory();
     renderProgram(state[currentProfile].program);
-  }
-  document.getElementById("sessDoneClose").addEventListener("click", () => {
+
     session = null;
     document.getElementById("sessionOverlay").hidden = true;
     document.getElementById("sessWarmupView").hidden = false;
     document.getElementById("sessExerciseView").hidden = true;
     document.getElementById("sessCooldownView").hidden = true;
     document.getElementById("sessDoneView").hidden = true;
-  });
+  }
 
   // ---------- Plattenauswahl in der Session (inline, direkt auf der Oberfläche) ----------
   document.getElementById("sessPlateRow").addEventListener("click", (e) => {
