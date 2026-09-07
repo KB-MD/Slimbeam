@@ -255,6 +255,9 @@
   <h1>SlimBeam Trainingsplaner</h1>
   <div class="tag">Individuelle, periodisierte Trainingsprogramme für den NOHRD SlimBeam</div>
   <div class="source">Kapitel- und Video-Struktur aus dem offiziellen <a href="https://www.nohrd.com/pub/media/pdf/slimbeam/slimbeam-trainingsbuch.pdf">SlimBeam Trainingshandbuch</a></div>
+  <div id="updateBanner" hidden style="margin-top:8px; padding:8px 10px; background:var(--wood-tint); border:1px solid var(--wood); border-radius:6px; font-size:12px; color:var(--wood-dark);">
+    ⬆️ Neuere Version verfügbar — bitte die App über die ZIP-Datei neu herunterladen (Einstellungen unten enthalten den Link).
+  </div>
 </header>
 
 <main>
@@ -267,6 +270,20 @@
         <legend>Profil</legend>
         <div class="hint">Jedes Profil merkt sich eigene Einstellungen, Gewichte und Verlauf.</div>
         <div class="segmented profile-seg" id="profileSeg"></div>
+        <div class="row-fields" style="margin-top:10px;">
+          <div class="field">
+            <legend style="font-size:11.5px;">Alter (Jahre)</legend>
+            <input type="number" inputmode="numeric" id="profAgeInput" min="10" max="100" style="width:100%; height:38px; border:1px solid var(--border); border-radius:4px; padding:0 10px; font-size:14px;">
+          </div>
+          <div class="field">
+            <legend style="font-size:11.5px;">Größe (cm)</legend>
+            <input type="number" inputmode="numeric" id="profHeightInput" min="120" max="230" style="width:100%; height:38px; border:1px solid var(--border); border-radius:4px; padding:0 10px; font-size:14px;">
+          </div>
+          <div class="field">
+            <legend style="font-size:11.5px;">Gewicht (kg)</legend>
+            <input type="number" inputmode="numeric" id="profWeightInput" min="30" max="200" style="width:100%; height:38px; border:1px solid var(--border); border-radius:4px; padding:0 10px; font-size:14px;">
+          </div>
+        </div>
       </fieldset>
 
       <fieldset>
@@ -319,11 +336,7 @@
 
       <fieldset>
         <legend>🎬 Videos</legend>
-        <div class="chips">
-          <input type="checkbox" class="chip-input" id="localVideosChip">
-          <label class="chip" for="localVideosChip">Lokale Videos verwenden</label>
-        </div>
-        <div class="hint">Erwartet einen Ordner „videos" direkt neben dieser HTML-Datei mit deinen heruntergeladenen MP4s (Dateiname wie im Original, z. B. „chest_press.mp4", oder nach Code „1-0.mp4"). Die Videos werden dann direkt eingebettet abgespielt, nicht über NOHRDs Server. Diese Videodateien lade ich nie ins öffentliche Repo hoch — die musst du selbst lokal bereitstellen.</div>
+        <div class="hint">Lokale Videos aus einem „videos"-Ordner neben dieser Datei sind aktiv. Fehlt eine Datei, zeigt die App einen Hinweis statt sie stumm zu überspringen.</div>
       </fieldset>
 
       <fieldset>
@@ -468,7 +481,7 @@
   // (Buchstaben-Codes) sind laut Nutzer-Test auch über den QR-Code aus dem Original-Handbuch
   // nicht mehr erreichbar (404) — vermutlich seit einer Umstrukturierung bei NOHRD.
   function hasVideo(code){ return !!code && /^\d/.test(code); }
-  function useLocalVideos(){ const v = localStorage.getItem("slimbeamLocalVideos"); return v === null ? true : v === "1"; }
+  function useLocalVideos(){ return true; }
   function localVideoUrl(ex){ return "videos/" + (ex.file || ex.code) + ".mp4"; }
 
   // Erzeugt Standbilder aus den lokalen Videodateien direkt im Browser (Canvas-Snapshot).
@@ -510,6 +523,7 @@
     return hasVideo(ex.code) ? '<a class="ex-video" href="'+videoUrl(ex.code)+'">'+(small?'🎬':'🎬 Video')+'</a>' : '<span class="no-video">kein Video</span>';
   }
   const STORE_KEY = "slimbeamPlanner_v1";
+  const APP_VERSION = "2026-09-07-1";
 
   const POOL = {
     "Brust": [
@@ -630,12 +644,12 @@
   const WARMUP_COUNT = 3, COOLDOWN_COUNT = 3;
 
   const PROFILES = {
-    mann: {label:"Mann", age:50, height:178, weight:80},
-    frau: {label:"Frau", age:45, height:168, weight:60}
+    mann: {label:"Klemens"},
+    frau: {label:"Romana"}
   };
   const state = {
-    mann: {focus:new Set(), level:"fortgeschritten", days:3, weeks:6, timeTarget:0, ratio:"3:1", minimize:true, program:null, weights:{}, history:[]},
-    frau: {focus:new Set(), level:"fortgeschritten", days:3, weeks:6, timeTarget:0, ratio:"3:1", minimize:true, program:null, weights:{}, history:[]}
+    mann: {focus:new Set(), level:"fortgeschritten", days:3, weeks:6, timeTarget:0, ratio:"3:1", minimize:true, program:null, weights:{}, history:[], age:50, height:178, weight:80},
+    frau: {focus:new Set(), level:"fortgeschritten", days:3, weeks:6, timeTarget:0, ratio:"3:1", minimize:true, program:null, weights:{}, history:[], age:45, height:168, weight:60}
   };
   let currentProfile = "mann";
 
@@ -873,7 +887,7 @@
     const dump = {_updatedAt: Date.now()};
     Object.keys(state).forEach(k => {
       const s = state[k];
-      dump[k] = {focus:Array.from(s.focus), level:s.level, days:s.days, weeks:s.weeks, timeTarget:s.timeTarget, ratio:s.ratio, minimize:s.minimize, weights:s.weights, history:s.history, program:s.program};
+      dump[k] = {focus:Array.from(s.focus), level:s.level, days:s.days, weeks:s.weeks, timeTarget:s.timeTarget, ratio:s.ratio, minimize:s.minimize, weights:s.weights, history:s.history, program:s.program, age:s.age, height:s.height, weight:s.weight};
     });
     return dump;
   }
@@ -891,6 +905,9 @@
       state[k].weights = d.weights || {};
       state[k].history = d.history || [];
       state[k].program = d.program || null;
+      if (d.age) state[k].age = d.age;
+      if (d.height) state[k].height = d.height;
+      if (d.weight) state[k].weight = d.weight;
     });
   }
   function saveState(skipCloud){
@@ -1305,7 +1322,7 @@
       return {name: ex.name, code: ex.code, cat: ex.cat, setsCompleted: session.setsDone[i], setsPlanned: session.scheme.sets, plates: plates, weightKg: kgInfo ? kgInfo.kg : null};
     });
     const phase = state[currentProfile].program[session.weekIndex].phase;
-    const kcalInfo = computeActualKcal(phase, PROFILES[currentProfile].weight, durationActualMin, exercisesData);
+    const kcalInfo = computeActualKcal(phase, state[currentProfile].weight, durationActualMin, exercisesData);
     const record = {
       date: new Date().toISOString(),
       dayLabel: session.day.label,
@@ -1362,7 +1379,7 @@
     if (key===currentProfile) input.checked=true;
     const label = document.createElement("label");
     label.className="seg"; label.htmlFor=id;
-    label.innerHTML = '<span class="seg-name">'+p.label+'</span><span class="seg-stats">'+p.age+' J · '+p.height+' cm · '+p.weight+' kg</span>';
+    label.textContent = p.label;
     profileSegEl.appendChild(input); profileSegEl.appendChild(label);
   });
 
@@ -1409,7 +1426,7 @@
     const weeks = parseInt(document.getElementById("weeksSelect").value,10);
     const ratio = (document.querySelector('input[name="ratio"]:checked')||{}).value || "3:1";
     const minimize = document.getElementById("minimizeChip").checked;
-    return {focus, level, exPerDay:LEVELS[level].exPerDay, days:daysVal, weeks, timeTarget:state[currentProfile].timeTarget, weightKg:PROFILES[currentProfile].weight, ratio, minimize};
+    return {focus, level, exPerDay:LEVELS[level].exPerDay, days:daysVal, weeks, timeTarget:state[currentProfile].timeTarget, weightKg:state[currentProfile].weight, ratio, minimize};
   }
   function saveUIIntoProfile(key){
     const opts = currentOpts();
@@ -1422,9 +1439,9 @@
     document.querySelectorAll(".time-btn").forEach(btn => btn.classList.toggle("active", parseInt(btn.dataset.min,10)===active));
   }
   function showSummary(weeksProgram, opts){
-    const p = PROFILES[currentProfile];
+    const p = PROFILES[currentProfile], s = state[currentProfile];
     document.getElementById("summaryBox").style.display = "block";
-    document.getElementById("profileLine").innerHTML = "Programm für <b>"+p.label+"</b> · "+p.age+" Jahre · "+p.height+" cm · "+p.weight+" kg";
+    document.getElementById("profileLine").innerHTML = "Programm für <b>"+p.label+"</b> · "+s.age+" Jahre · "+s.height+" cm · "+s.weight+" kg";
     document.getElementById("sumSessions").textContent = opts.days*opts.weeks;
     document.getElementById("sumWeeks").textContent = opts.weeks;
     const allDays = weeksProgram.flatMap(w=>w.days);
@@ -1441,7 +1458,9 @@
     document.querySelectorAll('input[name="level"]').forEach(input => input.checked = (input.value===s.level));
     document.querySelectorAll('input[name="ratio"]').forEach(input => input.checked = (input.value===s.ratio));
     document.getElementById("minimizeChip").checked = s.minimize;
-    document.getElementById("localVideosChip").checked = useLocalVideos();
+    document.getElementById("profAgeInput").value = s.age;
+    document.getElementById("profHeightInput").value = s.height;
+    document.getElementById("profWeightInput").value = s.weight;
     daysVal = s.days; daysOut.textContent = daysVal;
     document.getElementById("weeksSelect").value = String(s.weeks);
     updateTimeButtonsUI();
@@ -1482,10 +1501,9 @@
   });
   document.querySelectorAll('input[name="ratio"]').forEach(input => input.addEventListener("change", () => { saveUIIntoProfile(currentProfile); renderProgram(state[currentProfile].program || []); }));
   document.getElementById("minimizeChip").addEventListener("change", () => saveUIIntoProfile(currentProfile));
-  document.getElementById("localVideosChip").addEventListener("change", (e) => {
-    localStorage.setItem("slimbeamLocalVideos", e.target.checked ? "1" : "0");
-    if (state[currentProfile].program) renderProgram(state[currentProfile].program);
-  });
+  document.getElementById("profAgeInput").addEventListener("input", (e) => { state[currentProfile].age = parseInt(e.target.value,10) || state[currentProfile].age; saveState(); });
+  document.getElementById("profHeightInput").addEventListener("input", (e) => { state[currentProfile].height = parseInt(e.target.value,10) || state[currentProfile].height; saveState(); });
+  document.getElementById("profWeightInput").addEventListener("input", (e) => { state[currentProfile].weight = parseInt(e.target.value,10) || state[currentProfile].weight; saveState(); });
   document.addEventListener("error", (e) => {
     if (e.target.tagName === "VIDEO" && e.target.closest(".local-video-wrap")){
       const wrap = e.target.closest(".local-video-wrap");
@@ -1513,6 +1531,14 @@
   document.getElementById("regenBtn").addEventListener("click", runGenerate);
 
   loadState();
+  fetch("https://raw.githubusercontent.com/KB-MD/Slimbeam/main/version.json", {cache:"no-store"})
+    .then(r => r.ok ? r.json() : null)
+    .then(data => {
+      if (data && data.version && data.version !== APP_VERSION){
+        document.getElementById("updateBanner").hidden = false;
+      }
+    })
+    .catch(() => { /* offline oder kein Netz — kein Update-Hinweis, kein Fehler */ });
   document.getElementById("cloudTokenInput").value = cloudToken() ? "••••••••••••" : "";
   if (cloudToken()){
     cloudPull(false).then(changed => { if (changed) loadProfileIntoUI(currentProfile); });
