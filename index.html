@@ -550,14 +550,14 @@
     const entry = key && VIMEO_IDS[key];
     if (!entry) return VIMEO_SHOWCASE;
     const id = (ex.side && entry[ex.side]) || entry.default || entry.right || entry.left;
-    return id ? (VIMEO_SHOWCASE + "?video=" + id) : VIMEO_SHOWCASE;
+    return id ? (VIMEO_SHOWCASE + "?video=" + id + "&autoplay=1") : VIMEO_SHOWCASE;
   }
   function hasVideo(ex){ return !!((ex.file || ex.code) && VIMEO_IDS[ex.file || ex.code]); }
   function videoBlockHtml(ex, small){
     return '<a class="ex-video" href="'+vimeoUrl(ex)+'">'+(small?'🎬':'🎬 Video')+'</a>';
   }
   const STORE_KEY = "slimbeamPlanner_v1";
-  const APP_VERSION = "2026-09-07-16";
+  const APP_VERSION = "2026-09-07-17";
 
   const POOL = {
     "Brust": [
@@ -872,7 +872,7 @@
             exercises.push({cat, name:ex.name+" (rechts)", code:ex.code, cue:ex.cue, file:ex.file, side:"right"});
             exercises.push({cat, name:ex.name+" (links)", code:ex.code, cue:ex.cue, file:ex.file, side:"left"});
           } else {
-            exercises.push({cat, name:ex.name, code:ex.code, cue:ex.cue});
+            exercises.push({cat, name:ex.name, code:ex.code, cue:ex.cue, file:ex.file});
           }
         });
         // Sportwissenschaftliche Reihenfolge: große, komplexe Bewegungen zuerst (Beine, Ganzkörper,
@@ -1301,12 +1301,13 @@
   document.getElementById("sessSwapBtn").addEventListener("click", () => {
     const ex = session.day.exercises[session.exIndex];
     const cat = ex.cat;
-    const usedCodes = new Set(session.day.exercises.map(e => e.code));
-    let candidates = POOL[cat].filter(e => e.code !== ex.code && !usedCodes.has(e.code));
-    if (!candidates.length) candidates = POOL[cat].filter(e => e.code !== ex.code);
+    const exKey = ex.file || ex.code;
+    const usedKeys = new Set(session.day.exercises.map(e => e.file || e.code));
+    let candidates = POOL[cat].filter(e => (e.file||e.code) !== exKey && !usedKeys.has(e.file||e.code));
+    if (!candidates.length) candidates = POOL[cat].filter(e => (e.file||e.code) !== exKey);
     if (!candidates.length) return;
     const newEx = candidates[Math.floor(Math.random()*candidates.length)];
-    session.day.exercises[session.exIndex] = {cat, name:newEx.name, code:newEx.code, cue:newEx.cue};
+    session.day.exercises[session.exIndex] = {cat, name:newEx.name, code:newEx.code, cue:newEx.cue, file:newEx.file};
     session.setsDone[session.exIndex] = 0;
     session.weightsLogged[session.exIndex] = state[currentProfile].weights[newEx.code] || "";
     renderSessionExercise();
