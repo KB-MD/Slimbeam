@@ -530,7 +530,7 @@
     return hasVideo(ex.code) ? '<a class="ex-video" href="'+videoUrl(ex.code)+'">'+(small?'🎬':'🎬 Video')+'</a>' : '<span class="no-video">kein Video</span>';
   }
   const STORE_KEY = "slimbeamPlanner_v1";
-  const APP_VERSION = "2026-09-07-5";
+  const APP_VERSION = "2026-09-07-6";
 
   const POOL = {
     "Brust": [
@@ -547,7 +547,8 @@
       {name:"Flys Egyptian", code:null, cue:"Fly-Variante mit seitlicher Rumpfneigung/-rotation während der Bewegung (genaue Ausführung laut Bezeichnung, nicht abschließend verifiziert).", file:"flys_egyptian"},
       {name:"Flys Pyramid", code:null, cue:"Fly-Variante mit überkopf geführtem Zug (genaue Ausführung laut Bezeichnung, nicht abschließend verifiziert).", file:"flys_pyramid"},
       {name:"Brustpresse Incline, mit Supination", code:"1-10", cue:"Kabel tief eingehängt, schräg nach oben-vorne drücken und den Unterarm dabei nach außen drehen — betont die obere Brust.", file:"chest_press_incline_supination"},
-      {name:"Cable Cross Incline einarmig", code:null, cue:"Einzelgriff, Kabel tief eingehängt, diagonal nach oben-vorne über den Körper führen — betont die obere Brust. Hinweis: in den Standbildern kaum von der Incline-Supination-Variante einarmig zu unterscheiden, evtl. dieselbe Übung mit anderem Namen.", file:"cable_cross_incline_one_arm"}
+      {name:"Cable Cross Incline einarmig", code:null, cue:"Einzelgriff, Kabel tief eingehängt, diagonal nach oben-vorne über den Körper führen — betont die obere Brust. Hinweis: in den Standbildern kaum von der Incline-Supination-Variante einarmig zu unterscheiden, evtl. dieselbe Übung mit anderem Namen.", file:"cable_cross_incline_one_arm"},
+      {name:"Liegestütz mit erhöhten Füßen", code:null, cue:"Füße auf der Gerätebasis ablegen, Körpergewicht als Widerstand — klassischer Liegestütz mit erhöhten Füßen.", file:"push_ups_incline"}
     ],
     "Rücken": [
       {name:"Geradarmiger Rückenzug", code:"2-0", cue:"Gestreckte Arme aus der Vorbeuge kontrolliert nach hinten zur Hüfte ziehen.", file:"pull_down_straight_arms"},
@@ -561,7 +562,13 @@
       {name:"Latzug frontal, stehend", code:null, cue:"Stehend Griff von oben nach vorne unten zur Brust ziehen.", file:"lat_pull_front"},
       {name:"Latzug frontal, kurzer Radius", code:null, cue:"Wie Latzug frontal stehend, aber mit reduziertem Bewegungsradius.", file:"lat_pull_front_short"},
       {name:"Reverse Fly einarmig", code:null, cue:"Arm seitlich in Schulterhöhe einarmig nach hinten führen, betont hintere Schulter und oberen Rücken.", file:"fly_reverse_one_arm"},
-      {name:"Rudern sitzend an der Wand", code:"Z4", cue:"Sitzend an der Säule rudernd nach hinten ziehen."}
+      {name:"Rudern sitzend an der Wand", code:"Z4", cue:"Sitzend an der Säule rudernd nach hinten ziehen."},
+      {name:"Latzug mit Rotation/Supination", code:null, cue:"Latzug zur Brust ziehen und dabei den Unterarm/Griff kontrolliert rotieren.", file:"pull_downs_rotation_supination"},
+      {name:"Rudern 45°", code:null, cue:"Kabel im 45°-Winkel, beide Griffe zur Hüfte ziehen.", file:"rowing_incline_45"},
+      {name:"Rudern 45° einarmig", code:null, cue:"Kabel im 45°-Winkel, ein Griff zur Hüfte ziehen.", file:"rowing_incline_45_one_arm"},
+      {name:"Rudern stehend", code:null, cue:"Stehend beide Griffe zur Hüfte ziehen, Rumpf aufrecht.", file:"rowing_standing"},
+      {name:"Rudern stehend einarmig", code:null, cue:"Stehend ein Griff zur Hüfte ziehen, Rumpf aufrecht.", file:"rowing_standing_one_arm"},
+      {name:"Überzug (Pullover)", code:null, cue:"Gestreckte Arme von oben nach vorne-unten ziehen, betont Latissimus und obere Brust.", file:"pull_overs"}
     ],
     "Bizeps": [
       {name:"Bizepscurl beidarmig", code:null, cue:"Beide Griffe von unten zur Schulter beugen, Ellbogen bleiben am Körper fixiert.", file:"biceps_curls"},
@@ -570,16 +577,23 @@
       {name:"Bizeps-Zug", code:null, cue:"Ziehende Bizeps-Bewegung mit abweichendem Kabelwinkel gegenüber dem klassischen Curl.", file:"biceps_pulls"}
     ],
     "Trizeps": [
+      {name:"Trizepsdrücken beidarmig", code:null, cue:"Beide Griffe von Brusthöhe nach unten strecken, Ellbogen fixiert.", file:"triceps_press"},
       {name:"Dips (unterstützt)", code:null, cue:"Sitzend an der Gerätebasis abstützen, Arme beugen und strecken, Körper dabei absenken und anheben.", file:"easy_dips"},
       {name:"Trizeps-Kickback einarmig in Vorbeuge", code:"3-6", cue:"Aus der Vorbeuge den gestreckten Arm einarmig kontrolliert nach hinten führen.", file:"kicks_back_one_arm"},
       {name:"Trizepsdrücken sitzend", code:"Z3", cue:"Sitzend am Gerät die Arme nach unten strecken."}
     ],
     "Schultern": [
+      {name:"Schulterdrücken über Kopf", code:null, cue:"Beide Griffe von Schulterhöhe kontrolliert nach oben drücken.", file:"shoulder_press"},
+      {name:"Schulterdrücken einarmig", code:null, cue:"Ein Griff von Schulterhöhe kontrolliert nach oben drücken.", file:"shoulder_press_one_arm"},
+      {name:"Seitheben am Kabel", code:null, cue:"Beide Arme seitlich von unten bis auf Schulterhöhe anheben.", file:"shoulder_side_raise"},
+      {name:"Seitheben einarmig", code:null, cue:"Ein Arm seitlich von unten bis auf Schulterhöhe anheben.", file:"shoulder_side_raise_one_arm"},
+      {name:"Schulterheben (Shrug)", code:null, cue:"Schultern gegen den Widerstand gerade nach oben ziehen.", file:"shrugs"},
       {name:"Frontheben am Kabel", code:"4-3", cue:"Beide Arme von unten nach vorne/oben bis Schulterhöhe anheben.", file:"front_raises"},
       {name:"Frontheben einarmig", code:null, cue:"Ein Arm von unten nach vorne/oben bis Schulterhöhe anheben.", file:"front_raise_one_arm"},
       {name:"Frontheben mit Supination", code:null, cue:"Beide Arme von unten nach vorne/oben anheben und den Unterarm dabei nach außen drehen.", file:"front_raise_supination"}
     ],
     "Bauch": [
+      {name:"Seitliche Rumpfbeuge einseitig", code:null, cue:"Seitlich zum Zug stehen, Oberkörper kontrolliert zur Seite neigen und wieder aufrichten.", file:"side_tilt"},
       {name:"Rotationszug diagonal", code:"5-0", cue:"Griff von der Seite diagonal vor dem Körper nach vorne führen, Rumpf kontrolliert mitdrehen lassen.", file:"diagonal_rotation"},
       {name:"Rumpfdrehung stehend", code:"5-4", cue:"Stehend den Oberkörper gegen den Kabelwiderstand kontrolliert rotieren.", file:"core_rotation"},
       {name:"Rumpfrotation einbeinig im Stand", code:null, cue:"Auf einem Bein stehend (anderes Knie angehoben) den Griff kontrolliert vor dem Körper herüberziehen — kombiniert Rotation mit Gleichgewicht.", file:"horizontal_rotation_one_leg"},
@@ -604,6 +618,7 @@
       {name:"Cross Country Ski", code:null, cue:"Aus der Vorbeuge dynamisch nach oben-vorne ziehen, ähnlich der Armbewegung beim Skilanglauf.", file:"cross_country_ski"},
       {name:"Kreuzheben 45°", code:null, cue:"Aus der Hüfte nach vorne beugen, Griff tief fassen und kontrolliert über die Hüftstreckung aufrichten.", file:"dead_lift_45"},
       {name:"Ausfallschritt mit Flys", code:null, cue:"Ausfallschritt kombiniert mit einer bogenförmigen Fly-Armbewegung auf Brusthöhe.", file:"lunge_flys"},
+      {name:"Rückwärts-Ausfallschritt mit Flys", code:null, cue:"Ausfallschritt rückwärts kombiniert mit einer bogenförmigen Fly-Armbewegung auf Brusthöhe.", file:"reverse_lunge_flys"},
       {name:"Ausfallschritt mit Armzug (Ganzkörper)", code:"K1", cue:"Ausfallschritt in die Knie kombiniert mit einer ziehenden Armbewegung."},
       {name:"Ausfallschritt mit Rotationszug", code:"K2", cue:"Ausfallschritt kombiniert mit einer diagonalen Zugbewegung der Arme."},
       {name:"Kniebeuge mit Überkopfzug", code:"K3", cue:"Aus der Hocke die Arme über Kopf strecken (Squat-to-Press-Prinzip)."},
@@ -801,7 +816,7 @@
   }
   function isUnilateral(ex){
     const t = (ex.name+" "+ex.cue).toLowerCase();
-    return t.includes("einarmig") || t.includes("einbeinig");
+    return t.includes("einarmig") || t.includes("einbeinig") || t.includes("einseitig");
   }
   function kgFromPlates(plates, pull, ratioStr){
     if(!plates || plates<=0) return null;
@@ -850,8 +865,9 @@
         cats.forEach(cat => {
           const ex = drawExercise(queues, cat);
           if (isUnilateral(ex)){
-            exercises.push({cat, name:ex.name+" (rechts)", code:ex.code, cue:ex.cue});
-            exercises.push({cat, name:ex.name+" (links)", code:ex.code, cue:ex.cue});
+            const base = ex.file || ex.code;
+            exercises.push({cat, name:ex.name+" (rechts)", code:ex.code, cue:ex.cue, file: base ? base+"_rechts" : null});
+            exercises.push({cat, name:ex.name+" (links)", code:ex.code, cue:ex.cue, file: base ? base+"_links" : null});
           } else {
             exercises.push({cat, name:ex.name, code:ex.code, cue:ex.cue});
           }
