@@ -530,7 +530,7 @@
     return hasVideo(ex.code) ? '<a class="ex-video" href="'+videoUrl(ex.code)+'">'+(small?'🎬':'🎬 Video')+'</a>' : '<span class="no-video">kein Video</span>';
   }
   const STORE_KEY = "slimbeamPlanner_v1";
-  const APP_VERSION = "2026-09-07-2";
+  const APP_VERSION = "2026-09-07-3";
 
   const POOL = {
     "Brust": [
@@ -544,6 +544,11 @@
       {name:"Einarmiger Zug mit Seilgriff", code:"1-7", cue:"Seilgriff einarmig von Brusthöhe nach vorne führen."},
       {name:"Brustpresse vorgebeugt", code:"1-8", cue:"Aus leichter Vorbeuge beidarmig nach vorne drücken."},
       {name:"Butterfly / Flys", code:"1-9", cue:"Bogenförmige Öffnungs- und Schließbewegung der Arme auf Brusthöhe statt geradem Druck.", file:"flys"},
+      {name:"Flys Incline", code:null, cue:"Kabel tief eingehängt, bogenförmige Öffnungs-/Schließbewegung schräg nach oben — betont die obere Brust.", file:"flys_incline"},
+      {name:"Flys Decline", code:null, cue:"Kabel hoch eingehängt, bogenförmige Öffnungs-/Schließbewegung schräg nach unten — betont die untere Brust.", file:"flys_decline"},
+      {name:"Flys einarmig", code:null, cue:"Bogenförmige Öffnungs-/Schließbewegung einarmig auf Brusthöhe.", file:"flys_one_arm"},
+      {name:"Flys Decline einarmig", code:null, cue:"Kabel hoch eingehängt, bogenförmige Bewegung einarmig schräg nach unten — betont die untere Brust.", file:"flys_one_arm_decline"},
+      {name:"Flys Egyptian", code:null, cue:"Fly-Variante mit seitlicher Rumpfneigung/-rotation während der Bewegung (genaue Ausführung laut Bezeichnung, nicht abschließend verifiziert).", file:"flys_egyptian"},
       {name:"Brustpresse Incline, mit Supination", code:"1-10", cue:"Kabel tief eingehängt, schräg nach oben-vorne drücken und den Unterarm dabei nach außen drehen — betont die obere Brust.", file:"chest_press_incline_supination"},
       {name:"Einarmiger Crossover", code:"1-11", cue:"Einzelgriff diagonal über den Körper nach vorne-unten führen."},
       {name:"Cable Cross Incline einarmig", code:null, cue:"Einzelgriff, Kabel tief eingehängt, diagonal nach oben-vorne über den Körper führen — betont die obere Brust. Hinweis: in den Standbildern kaum von der Incline-Supination-Variante einarmig zu unterscheiden, evtl. dieselbe Übung mit anderem Namen.", file:"cable_cross_incline_one_arm"}
@@ -562,6 +567,7 @@
       {name:"Rudern stehend, breiter Zug", code:"2-9", cue:"Arme seitlich weit ausholend nach hinten ziehen, Schulterblätter zusammenführen."},
       {name:"Latzug stehend, hinter Kopf", code:"2-10", cue:"Stange von oben hinter den Kopf zur Schulter ziehen."},
       {name:"Reverse Fly am Kabel", code:"2-11", cue:"Arme seitlich in Schulterhöhe nach hinten führen, betont hintere Schulter und oberen Rücken."},
+      {name:"Reverse Fly einarmig", code:null, cue:"Arm seitlich in Schulterhöhe einarmig nach hinten führen, betont hintere Schulter und oberen Rücken.", file:"fly_reverse_one_arm"},
       {name:"Rückenstrecker sitzend", code:"2-12", cue:"Sitzend Griffe von oben zur Hüfte ziehen, Rumpf aufrichten."},
       {name:"Rückenstrecker sitzend, Langstange", code:"2-13", cue:"Sitzend Stange von oben zur Hüfte ziehen, Rumpf aufrichten."},
       {name:"Rudern sitzend an der Wand", code:"Z4", cue:"Sitzend an der Säule rudernd nach hinten ziehen."}
@@ -573,6 +579,7 @@
       {name:"Bizeps-Zug", code:null, cue:"Ziehende Bizeps-Bewegung mit abweichendem Kabelwinkel gegenüber dem klassischen Curl.", file:"biceps_pulls"}
     ],
     "Trizeps": [
+      {name:"Dips (unterstützt)", code:null, cue:"Sitzend an der Gerätebasis abstützen, Arme beugen und strecken, Körper dabei absenken und anheben.", file:"easy_dips"},
       {name:"Trizepsdrücken einarmig", code:"3-0", cue:"Einzelgriff von oben nach unten strecken, Oberarm bleibt ruhig am Körper."},
       {name:"Trizepsdrücken einarmig, tief", code:"3-1", cue:"Einzelgriff aus tiefer Position nach unten strecken."},
       {name:"Trizepsdrücken beidarmig", code:"3-2", cue:"Beide Griffe von Brusthöhe nach unten strecken, Ellbogen fixiert."},
@@ -596,11 +603,11 @@
       {name:"Schulterheben (Shrug)", code:"4-9", cue:"Schultern gegen den Widerstand gerade nach oben ziehen."}
     ],
     "Bauch": [
-      {name:"Rotationszug diagonal", code:"5-0", cue:"Griff von der Seite diagonal vor dem Körper nach vorne führen, Rumpf kontrolliert mitdrehen lassen."},
+      {name:"Rotationszug diagonal", code:"5-0", cue:"Griff von der Seite diagonal vor dem Körper nach vorne führen, Rumpf kontrolliert mitdrehen lassen.", file:"diagonal_rotation"},
       {name:"Holzhacker-Zug (Woodchop)", code:"5-1", cue:"Aus der Vorbeuge diagonal von unten nach oben über den Körper ziehen."},
       {name:"Kniender Crunch am Kabel", code:"5-2", cue:"Sitzend den Oberkörper gegen den Widerstand einrollen."},
       {name:"Seitliche Rumpfbeuge am Kabel", code:"5-3", cue:"Seitlich zum Zug stehen und den Oberkörper kontrolliert zur Seite neigen."},
-      {name:"Rumpfdrehung stehend", code:"5-4", cue:"Stehend den Oberkörper gegen den Kabelwiderstand kontrolliert rotieren."},
+      {name:"Rumpfdrehung stehend", code:"5-4", cue:"Stehend den Oberkörper gegen den Kabelwiderstand kontrolliert rotieren.", file:"core_rotation"},
       {name:"Pallof-Press-Variante", code:"5-5", cue:"Seitlich zum Zug stehen, Griff gerade vom Körper wegdrücken, Rotation aktiv verhindern."},
       {name:"Crunch liegend mit Fußschlaufen", code:"Z8", cue:"Liegend die Knie gegen den Widerstand zur Brust ziehen."},
       {name:"Crunch aufrecht mit Fußschlaufen", code:"Z9", cue:"Liegend mit angewinkelten Beinen den Oberkörper einrollen."},
@@ -625,6 +632,8 @@
       {name:"Gesäß-Kick einbeinig", code:null, cue:"An der Säule festhalten, das Bein einbeinig gestreckt nach hinten kicken (Gesäß).", file:"butt_kicks"}
     ],
     "Ganzkörper": [
+      {name:"Cross Country Ski", code:null, cue:"Aus der Vorbeuge dynamisch nach oben-vorne ziehen, ähnlich der Armbewegung beim Skilanglauf.", file:"cross_country_ski"},
+      {name:"Kreuzheben 45°", code:null, cue:"Aus der Hüfte nach vorne beugen, Griff tief fassen und kontrolliert über die Hüftstreckung aufrichten.", file:"dead_lift_45"},
       {name:"Ausfallschritt mit Armzug (Ganzkörper)", code:"K1", cue:"Ausfallschritt in die Knie kombiniert mit einer ziehenden Armbewegung."},
       {name:"Ausfallschritt mit Rotationszug", code:"K2", cue:"Ausfallschritt kombiniert mit einer diagonalen Zugbewegung der Arme."},
       {name:"Kniebeuge mit Überkopfzug", code:"K3", cue:"Aus der Hocke die Arme über Kopf strecken (Squat-to-Press-Prinzip)."},
