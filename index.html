@@ -345,6 +345,7 @@
         <div class="hint">Speichert Plan, Verlauf, Gewichte und Abgeschlossen-Status geräteübergreifend in einem privaten GitHub Gist. Erstelle dafür ein Personal Access Token nur mit Berechtigung „gist" (Settings → Developer settings → Personal access tokens). Das Token wird lokal auf diesem Gerät gespeichert.</div>
         <div class="row-fields" style="margin-bottom:8px;">
           <input type="password" id="cloudTokenInput" placeholder="ghp_… (Scope: gist)" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" style="flex:1; height:42px; border:1px solid var(--border); border-radius:4px; padding:0 10px; font-size:14px;">
+          <button type="button" id="cloudTokenToggle" style="width:42px; height:42px; border:1px solid var(--border); border-radius:4px; background:var(--surface); font-size:16px;">👁</button>
         </div>
         <div class="row-fields">
           <button type="button" class="btn-secondary" id="cloudSaveTokenBtn" style="margin-top:0;">Verbinden &amp; hochladen</button>
@@ -565,7 +566,7 @@
       '<div class="video-embed-wrap" hidden></div>';
   }
   const STORE_KEY = "slimbeamPlanner_v1";
-  const APP_VERSION = "2026-09-07-20";
+  const APP_VERSION = "2026-09-07-21";
 
   const POOL = {
     "Brust": [
@@ -1003,7 +1004,11 @@
         headers: {"Authorization":"token "+token, "Accept":"application/vnd.github+json", "Content-Type":"application/json"},
         body: JSON.stringify(payload)
       });
-      if (!res.ok) throw new Error("HTTP "+res.status);
+      if (!res.ok){
+        let detail = "";
+        try{ const errBody = await res.json(); detail = errBody.message ? " – "+errBody.message : ""; }catch(e2){}
+        throw new Error("HTTP "+res.status+detail);
+      }
       const data = await res.json();
       if (!gistId) localStorage.setItem(CLOUD_GIST_KEY, data.id);
       setSyncStatus("Zuletzt synchronisiert: "+new Date().toLocaleTimeString('de-DE'));
@@ -1563,6 +1568,12 @@
   document.getElementById("profHeightInput").addEventListener("input", (e) => { state[currentProfile].height = parseInt(e.target.value,10) || state[currentProfile].height; saveState(); });
   document.getElementById("profWeightInput").addEventListener("input", (e) => { state[currentProfile].weight = parseInt(e.target.value,10) || state[currentProfile].weight; saveState(); });
 
+  document.getElementById("cloudTokenToggle").addEventListener("click", () => {
+    const input = document.getElementById("cloudTokenInput");
+    const btn = document.getElementById("cloudTokenToggle");
+    if (input.type === "password"){ input.type = "text"; btn.textContent = "🙈"; }
+    else { input.type = "password"; btn.textContent = "👁"; }
+  });
   document.getElementById("cloudSaveTokenBtn").addEventListener("click", () => {
     const val = document.getElementById("cloudTokenInput").value.trim();
     if (val && val !== "••••••••••••"){
