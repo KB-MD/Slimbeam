@@ -147,6 +147,10 @@
   .ex-video{flex:0 0 auto; align-self:center; padding:8px 11px; border:1px solid var(--wood); border-radius:999px; color:var(--wood-dark); background:transparent; font-family:'Inter',sans-serif; font-size:12.5px; font-weight:600; min-height:36px; cursor:pointer; text-decoration:none;}
   .ex-video:active{background:var(--wood-tint);}
   .no-video{flex:0 0 auto; align-self:center; font-size:11.5px; color:var(--ink-muted); font-style:italic; white-space:nowrap;}
+  button.ex-video-toggle{font-family:'Inter',sans-serif; cursor:pointer;}
+  .video-embed-wrap{margin-top:8px; width:100%;}
+  .video-embed-wrap iframe{width:100%; aspect-ratio:16/9; border-radius:8px; background:#000; display:block; border:0;}
+  .video-embed-fallback{display:block; font-size:11px; color:var(--ink-muted); margin-top:4px; text-decoration:underline;}
 
   .ex-weight-row{margin-top:8px;}
   .ex-weight-row .plate-label{font-size:11px; color:var(--ink-muted); display:block; margin-bottom:4px;}
@@ -438,6 +442,7 @@
         <a class="ex-video" id="sessVideoLink" href="#">🎬 Video</a>
         <button type="button" class="ex-video" id="sessSwapBtn" style="background:var(--surface);">🔄 Übung tauschen</button>
       </div>
+      <div class="video-embed-wrap" id="sessVideoEmbedWrap" hidden></div>
       <div class="sess-target" id="sessTarget"></div>
       <div class="sess-prog-hint" id="sessProgHint"></div>
       <div class="sess-sets" id="sessSets"></div>
@@ -545,19 +550,22 @@
   // einarmigen/einbeinigen Paaren automatisch mitgegeben (siehe generateProgram).
   // Fehlt eine ID (z. B. 3 Lücken in der vom Nutzer gelieferten Liste), landet man
   // auf der allgemeinen Showcase-Seite statt auf einem toten Link.
-  function vimeoUrl(ex){
+  function vimeoIdOf(ex){
     const key = ex.file || ex.code;
     const entry = key && VIMEO_IDS[key];
-    if (!entry) return VIMEO_SHOWCASE;
-    const id = (ex.side && entry[ex.side]) || entry.default || entry.right || entry.left;
-    return id ? (VIMEO_SHOWCASE + "?video=" + id + "&autoplay=1&fullscreen=1") : VIMEO_SHOWCASE;
+    if (!entry) return null;
+    return (ex.side && entry[ex.side]) || entry.default || entry.right || entry.left || null;
   }
-  function hasVideo(ex){ return !!((ex.file || ex.code) && VIMEO_IDS[ex.file || ex.code]); }
+  function hasVideo(ex){ return !!vimeoIdOf(ex); }
   function videoBlockHtml(ex, small){
-    return '<a class="ex-video" href="'+vimeoUrl(ex)+'">'+(small?'🎬':'🎬 Video')+'</a>';
+    const id = vimeoIdOf(ex);
+    const label = small ? '🎬' : '🎬 Video';
+    if (!id) return '<a class="ex-video" href="'+VIMEO_SHOWCASE+'">'+label+'</a>';
+    return '<button type="button" class="ex-video ex-video-toggle" data-vid="'+id+'" data-label="'+esc(label)+'">'+label+'</button>'+
+      '<div class="video-embed-wrap" hidden></div>';
   }
   const STORE_KEY = "slimbeamPlanner_v1";
-  const APP_VERSION = "2026-09-07-18";
+  const APP_VERSION = "2026-09-07-19";
 
   const POOL = {
     "Brust": [
@@ -1267,8 +1275,20 @@
     document.getElementById("sessName").textContent = ex.name;
     document.getElementById("sessCue").textContent = ex.cue;
     const vLink = document.getElementById("sessVideoLink");
-    if (hasVideo(ex)){ vLink.href = vimeoUrl(ex); vLink.style.display = ""; vLink.textContent = "🎬 Video"; }
-    else { vLink.removeAttribute("href"); vLink.style.display = "none"; }
+    const vWrap = document.getElementById("sessVideoEmbedWrap");
+    vWrap.hidden = true; vWrap.innerHTML = "";
+    const vid = vimeoIdOf(ex);
+    if (vid){
+      vLink.style.display = "";
+      vLink.textContent = "🎬 Video";
+      vLink.href = "#";
+      vLink.dataset.vid = vid;
+      vLink.dataset.label = "🎬 Video";
+      vLink.classList.add("ex-video-toggle-sess");
+      vLink.removeAttribute("target");
+    } else {
+      vLink.style.display = "none";
+    }
     document.getElementById("sessTarget").textContent = "Ziel: " + session.scheme.sets + " × " + session.scheme.reps + " · Pause " + session.scheme.pause + " · RPE " + session.scheme.rpe;
     const progEl = document.getElementById("sessProgHint");
     const prog = progressionHint(ex.code);
@@ -1298,6 +1318,26 @@
     const sugg = val ? kgFromPlates(parseFloat(val), inferPull(ex), state[currentProfile].ratio) : null;
     hint.textContent = sugg ? ("→ "+sugg.kg+" kg effektiv am Griff ("+sugg.stack+" kg Stapel bei "+state[currentProfile].ratio+")") : "";
   }
+  document.addEventListener("click", (e) => {
+    const btn = e.target.closest(".ex-video-toggle, .ex-video-toggle-sess");
+    if (!btn) return;
+    e.preventDefault();
+    const vid = btn.dataset.vid;
+    const wrap = btn.classList.contains("ex-video-toggle-sess")
+      ? document.getElementById("sessVideoEmbedWrap")
+      : btn.nextElementSibling;
+    if (!wrap || !wrap.classList.contains("video-embed-wrap")) return;
+    if (wrap.hidden){
+      wrap.innerHTML = '<iframe src="https://player.vimeo.com/video/'+vid+'?autoplay=1&title=0&byline=0&portrait=0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen frameborder="0"></iframe>'+
+        '<a class="video-embed-fallback" href="'+VIMEO_SHOWCASE+'?video='+vid+'&autoplay=1&fullscreen=1">Video lädt nicht? Extern öffnen</a>';
+      wrap.hidden = false;
+      btn.textContent = (btn.dataset.label||"🎬") + " ✕";
+    } else {
+      wrap.hidden = true;
+      wrap.innerHTML = "";
+      btn.textContent = btn.dataset.label || "🎬 Video";
+    }
+  });
   document.getElementById("sessSwapBtn").addEventListener("click", () => {
     const ex = session.day.exercises[session.exIndex];
     const cat = ex.cat;
