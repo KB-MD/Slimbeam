@@ -530,7 +530,7 @@
     return hasVideo(ex.code) ? '<a class="ex-video" href="'+videoUrl(ex.code)+'">'+(small?'🎬':'🎬 Video')+'</a>' : '<span class="no-video">kein Video</span>';
   }
   const STORE_KEY = "slimbeamPlanner_v1";
-  const APP_VERSION = "2026-09-07-9";
+  const APP_VERSION = "2026-09-07-10";
 
   const POOL = {
     "Brust": [
@@ -921,8 +921,8 @@
   const CLOUD_TOKEN_KEY = "slimbeamCloudToken";
   const CLOUD_GIST_KEY = "slimbeamCloudGistId";
   const GIST_FILENAME = "slimbeam-daten.json";
-  function cloudToken(){ return localStorage.getItem(CLOUD_TOKEN_KEY) || ""; }
-  function cloudGistId(){ return localStorage.getItem(CLOUD_GIST_KEY) || ""; }
+  function cloudToken(){ try{ return localStorage.getItem(CLOUD_TOKEN_KEY) || ""; }catch(e){ return ""; } }
+  function cloudGistId(){ try{ return localStorage.getItem(CLOUD_GIST_KEY) || ""; }catch(e){ return ""; } }
   function setSyncStatus(msg){
     const el = document.getElementById("cloudStatus");
     if (el) el.textContent = msg;
@@ -1525,7 +1525,7 @@
   document.getElementById("cloudSaveTokenBtn").addEventListener("click", () => {
     const val = document.getElementById("cloudTokenInput").value.trim();
     if (val && val !== "••••••••••••"){
-      localStorage.setItem(CLOUD_TOKEN_KEY, val);
+      try{ localStorage.setItem(CLOUD_TOKEN_KEY, val); }catch(e){}
       document.getElementById("cloudTokenInput").value = "••••••••••••";
     }
     if (!cloudToken()){ setSyncStatus("Bitte zuerst ein Token eintragen."); return; }
