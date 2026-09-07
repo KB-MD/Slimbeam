@@ -533,7 +533,7 @@
     return hasVideo(ex.code) ? '<a class="ex-video" href="'+videoUrl(ex.code)+'">'+(small?'🎬':'🎬 Video')+'</a>' : '<span class="no-video">kein Video</span>';
   }
   const STORE_KEY = "slimbeamPlanner_v1";
-  const APP_VERSION = "2026-09-07-11";
+  const APP_VERSION = "2026-09-07-12";
 
   const POOL = {
     "Brust": [
@@ -619,11 +619,11 @@
   const CATS = Object.keys(POOL);
 
   const WARMUP_POOL = [
-    {name:"Kniebeuge mit Überkopfzug (leicht)", code:"K3", cue:"Locker und dynamisch aus der Hocke die Arme über Kopf strecken, ca. 12–15 Wiederholungen bei sehr leichtem Widerstand."},
-    {name:"Rotationszug diagonal (leicht)", code:"5-0", cue:"Locker von der Seite nach vorne führen und den Rumpf mitdrehen lassen, ca. 12–15 Wiederholungen je Seite."},
-    {name:"Kabel-Kniebeuge (leicht)", code:"6-0", cue:"Zügig, aber kontrolliert in die Hocke gehen und aufrichten, ca. 12–15 Wiederholungen."},
-    {name:"Seitheben (leicht)", code:"4-0", cue:"Arm locker seitlich anheben, ca. 12–15 Wiederholungen je Seite bei sehr leichtem Widerstand."},
-    {name:"Rudern stehend, geradarmig (leicht)", code:"2-8", cue:"Arme gestreckt locker nach hinten führen, ca. 12–15 Wiederholungen, oberen Rücken aktivieren."}
+    {name:"Kreuzheben 45° (leicht)", code:null, cue:"Locker und kontrolliert aus der Hüfte beugen und aufrichten, ca. 12–15 Wiederholungen bei sehr leichtem Widerstand.", file:"dead_lift_45"},
+    {name:"Rotationszug diagonal (leicht)", code:null, cue:"Locker von der Seite nach vorne führen und den Rumpf mitdrehen lassen, ca. 12–15 Wiederholungen je Seite.", file:"diagonal_rotation"},
+    {name:"Cross Country Ski (leicht)", code:null, cue:"Locker und dynamisch aus der Vorbeuge nach oben-vorne ziehen, ca. 12–15 Wiederholungen bei sehr leichtem Widerstand.", file:"cross_country_ski"},
+    {name:"Seitheben (leicht)", code:null, cue:"Arm locker seitlich anheben, ca. 12–15 Wiederholungen je Seite bei sehr leichtem Widerstand.", file:"shoulder_side_raise"},
+    {name:"Rudern stehend (leicht)", code:null, cue:"Arme locker nach hinten ziehen, ca. 12–15 Wiederholungen, oberen Rücken aktivieren.", file:"rowing_standing"}
   ];
   const COOLDOWN_POOL = [
     {name:"Nackendehnung seitlich", code:null, cue:"Kopf sanft mit der Hand zur Seite ziehen, bis eine Dehnung im seitlichen Nacken spürbar ist, 20–30 Sekunden halten, Seite wechseln."},
