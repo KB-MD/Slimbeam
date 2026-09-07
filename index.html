@@ -359,7 +359,12 @@
   <details class="panel" id="historyPanel">
     <summary>📖 Verlauf <span class="chev">▾</span></summary>
     <div class="panel-body">
-      <div id="historyList"><div class="hint">Noch keine Einheiten abgeschlossen.</div></div>
+      <div class="summary" style="margin-top:0;">
+        <div><span class="n num" id="statTotalSessions">0</span><span class="l">Einheiten gesamt</span></div>
+        <div><span class="n num" id="statTotalMinutes">0</span><span class="l">Minuten gesamt</span></div>
+        <div><span class="n num" id="statThisWeek">0/0</span><span class="l">Diese Woche</span></div>
+      </div>
+      <div id="historyList" style="margin-top:14px;"><div class="hint">Noch keine Einheiten abgeschlossen.</div></div>
       <button class="btn-secondary" id="exportBtn">Verlauf exportieren (CSV)</button>
       <div class="hint" style="margin-top:8px;">Kein direkter Apple-Health-Zugriff möglich (nur echte Apps dürfen das) — die CSV kannst du manuell auswerten oder in eine andere App importieren.</div>
     </div>
@@ -1144,9 +1149,26 @@
   });
 
   // ---------- Verlauf ----------
+  function weekRange(d){
+    const date = new Date(d);
+    const dow = (date.getDay()+6)%7; // Montag=0
+    const monday = new Date(date); monday.setDate(date.getDate()-dow); monday.setHours(0,0,0,0);
+    const sunday = new Date(monday); sunday.setDate(monday.getDate()+6); sunday.setHours(23,59,59,999);
+    return {monday, sunday};
+  }
   function renderHistory(){
     const list = document.getElementById("historyList");
     const hist = state[currentProfile].history;
+
+    const totalSessions = hist.length;
+    const totalMinutes = hist.reduce((a,h) => a + (h.durationActualMin||0), 0);
+    const {monday, sunday} = weekRange(new Date());
+    const thisWeekCount = hist.filter(h => { const d = new Date(h.date); return d >= monday && d <= sunday; }).length;
+    const plannedPerWeek = state[currentProfile].days;
+    document.getElementById("statTotalSessions").textContent = totalSessions;
+    document.getElementById("statTotalMinutes").textContent = totalMinutes;
+    document.getElementById("statThisWeek").textContent = thisWeekCount + "/" + plannedPerWeek;
+
     if (!hist.length){ list.innerHTML = '<div class="hint">Noch keine Einheiten abgeschlossen.</div>'; return; }
     list.innerHTML = hist.map(h => {
       const d = new Date(h.date);
