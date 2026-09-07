@@ -530,7 +530,7 @@
     return hasVideo(ex.code) ? '<a class="ex-video" href="'+videoUrl(ex.code)+'">'+(small?'🎬':'🎬 Video')+'</a>' : '<span class="no-video">kein Video</span>';
   }
   const STORE_KEY = "slimbeamPlanner_v1";
-  const APP_VERSION = "2026-09-07-7";
+  const APP_VERSION = "2026-09-07-8";
 
   const POOL = {
     "Brust": [
@@ -1498,6 +1498,7 @@
     input.addEventListener("change", () => {
       saveUIIntoProfile(currentProfile);
       currentProfile = input.value;
+      try{ localStorage.setItem("slimbeamCurrentProfile", currentProfile); }catch(e){}
       loadProfileIntoUI(currentProfile);
     });
   });
@@ -1569,10 +1570,24 @@
     }
   });
   document.getElementById("cloudTokenInput").value = cloudToken() ? "••••••••••••" : "";
+  try{
+    const savedProfile = localStorage.getItem("slimbeamCurrentProfile");
+    if (savedProfile && state[savedProfile]) currentProfile = savedProfile;
+  }catch(e){}
+  document.querySelectorAll('input[name="profile"]').forEach(input => { input.checked = (input.value === currentProfile); });
   if (cloudToken()){
     cloudPull(false).then(changed => { if (changed) loadProfileIntoUI(currentProfile); });
   }
   loadProfileIntoUI(currentProfile);
+
+  // Vor dem Schließen/Verlassen der Seite immer lokal speichern und einen letzten Cloud-Sync versuchen
+  function saveBeforeClose(){
+    saveState(true);
+    if (cloudToken()) cloudPush();
+  }
+  window.addEventListener("pagehide", saveBeforeClose);
+  window.addEventListener("beforeunload", saveBeforeClose);
+  document.addEventListener("visibilitychange", () => { if (document.hidden) saveBeforeClose(); });
 })();
 </script>
 </body>
