@@ -147,7 +147,9 @@
   .ex-video{flex:0 0 auto; align-self:center; padding:8px 11px; border:1px solid var(--wood); border-radius:999px; color:var(--wood-dark); background:transparent; font-family:'Inter',sans-serif; font-size:12.5px; font-weight:600; min-height:36px; cursor:pointer; text-decoration:none;}
   .ex-video:active{background:var(--wood-tint);}
   .no-video{flex:0 0 auto; align-self:center; font-size:11.5px; color:var(--ink-muted); font-style:italic; white-space:nowrap;}
-  .ex-thumb-img{flex:0 0 48px; width:48px; height:48px; border-radius:8px; object-fit:cover; background:var(--wood-tint); align-self:flex-start;}
+  .ex-thumb-img{flex:0 0 48px; width:48px; height:48px; border-radius:8px; object-fit:cover; background:var(--wood-tint); align-self:flex-start; display:none;}
+  .ex-thumb-img.loaded{display:block;}
+  #sessThumbImg.loaded{display:block !important;}
   #sessThumbImg{border-radius:10px; object-fit:cover; background:var(--wood-tint);}
   .local-video-wrap{margin-top:8px; width:100%;}
   .local-video-wrap video{width:100%; border-radius:8px; background:#000; display:block;}
@@ -495,7 +497,7 @@
   // Es wird nichts hochgeladen — die Verarbeitung passiert ausschließlich lokal auf dem Gerät.
   const thumbCache = {};
   function loadThumb(imgEl, path){
-    if (thumbCache[path]){ imgEl.src = thumbCache[path]; return; }
+    if (thumbCache[path]){ imgEl.src = thumbCache[path]; imgEl.classList.add("loaded"); return; }
     const v = document.createElement("video");
     v.muted = true; v.playsInline = true; v.preload = "metadata";
     v.addEventListener("loadeddata", () => {
@@ -509,9 +511,10 @@
         const url = c.toDataURL("image/jpeg", 0.7);
         thumbCache[path] = url;
         imgEl.src = url;
+        imgEl.classList.add("loaded");
       }catch(e){}
     }, {once:true});
-    v.addEventListener("error", () => { imgEl.style.visibility = "hidden"; }, {once:true});
+    v.addEventListener("error", () => { imgEl.classList.remove("loaded"); }, {once:true});
     v.src = path;
   }
   function generateThumbnailsIn(container){
@@ -530,7 +533,7 @@
     return hasVideo(ex.code) ? '<a class="ex-video" href="'+videoUrl(ex.code)+'">'+(small?'🎬':'🎬 Video')+'</a>' : '<span class="no-video">kein Video</span>';
   }
   const STORE_KEY = "slimbeamPlanner_v1";
-  const APP_VERSION = "2026-09-07-10";
+  const APP_VERSION = "2026-09-07-11";
 
   const POOL = {
     "Brust": [
