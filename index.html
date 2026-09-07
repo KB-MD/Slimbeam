@@ -344,7 +344,7 @@
         <legend>☁️ Cloud-Sync (GitHub Gist)</legend>
         <div class="hint">Speichert Plan, Verlauf, Gewichte und Abgeschlossen-Status geräteübergreifend in einem privaten GitHub Gist. Erstelle dafür ein Personal Access Token nur mit Berechtigung „gist" (Settings → Developer settings → Personal access tokens). Das Token wird lokal auf diesem Gerät gespeichert.</div>
         <div class="row-fields" style="margin-bottom:8px;">
-          <input type="password" id="cloudTokenInput" placeholder="ghp_… (Scope: gist)" style="flex:1; height:42px; border:1px solid var(--border); border-radius:4px; padding:0 10px; font-size:14px;">
+          <input type="password" id="cloudTokenInput" placeholder="ghp_… (Scope: gist)" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" style="flex:1; height:42px; border:1px solid var(--border); border-radius:4px; padding:0 10px; font-size:14px;">
         </div>
         <div class="row-fields">
           <button type="button" class="btn-secondary" id="cloudSaveTokenBtn" style="margin-top:0;">Verbinden &amp; hochladen</button>
@@ -565,7 +565,7 @@
       '<div class="video-embed-wrap" hidden></div>';
   }
   const STORE_KEY = "slimbeamPlanner_v1";
-  const APP_VERSION = "2026-09-07-19";
+  const APP_VERSION = "2026-09-07-20";
 
   const POOL = {
     "Brust": [
