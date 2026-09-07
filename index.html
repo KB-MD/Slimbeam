@@ -147,6 +147,9 @@
   .ex-video{flex:0 0 auto; align-self:center; padding:8px 11px; border:1px solid var(--wood); border-radius:999px; color:var(--wood-dark); background:transparent; font-family:'Inter',sans-serif; font-size:12.5px; font-weight:600; min-height:36px; cursor:pointer; text-decoration:none;}
   .ex-video:active{background:var(--wood-tint);}
   .no-video{flex:0 0 auto; align-self:center; font-size:11.5px; color:var(--ink-muted); font-style:italic; white-space:nowrap;}
+  .local-video-wrap{margin-top:8px; width:100%;}
+  .local-video-wrap video{width:100%; border-radius:8px; background:#000; display:block;}
+  .local-video-error{font-size:11px; color:var(--danger); margin-top:4px;}
 
   .ex-weight-row{margin-top:8px;}
   .ex-weight-row .plate-label{font-size:11px; color:var(--ink-muted); display:block; margin-bottom:4px;}
@@ -313,6 +316,15 @@
       </fieldset>
 
       <fieldset>
+        <legend>🎬 Videos</legend>
+        <div class="chips">
+          <input type="checkbox" class="chip-input" id="localVideosChip">
+          <label class="chip" for="localVideosChip">Lokale Videos verwenden</label>
+        </div>
+        <div class="hint">Erwartet einen Ordner „videos" direkt neben dieser HTML-Datei mit deinen heruntergeladenen MP4s (Dateiname wie im Original, z. B. „chest_press.mp4", oder nach Code „1-0.mp4"). Die Videos werden dann direkt eingebettet abgespielt, nicht über NOHRDs Server. Diese Videodateien lade ich nie ins öffentliche Repo hoch — die musst du selbst lokal bereitstellen.</div>
+      </fieldset>
+
+      <fieldset>
         <legend>☁️ Cloud-Sync (GitHub Gist)</legend>
         <div class="hint">Speichert Plan, Verlauf, Gewichte und Abgeschlossen-Status geräteübergreifend in einem privaten GitHub Gist. Erstelle dafür ein Personal Access Token nur mit Berechtigung „gist" (Settings → Developer settings → Personal access tokens). Das Token wird lokal auf diesem Gerät gespeichert.</div>
         <div class="row-fields" style="margin-bottom:8px;">
@@ -403,10 +415,11 @@
       <div class="sess-cat" id="sessCat"></div>
       <div class="sess-name" id="sessName"></div>
       <div class="sess-cue" id="sessCue"></div>
-      <div style="display:flex; gap:8px; margin-top:10px; flex-wrap:wrap;">
+      <div style="display:flex; gap:8px; margin-top:10px; flex-wrap:wrap;" id="sessVideoRow">
         <a class="ex-video" id="sessVideoLink" href="#">🎬 Video</a>
         <button type="button" class="ex-video" id="sessSwapBtn" style="background:var(--surface);">🔄 Übung tauschen</button>
       </div>
+      <div id="sessLocalVideoWrap"></div>
       <div class="sess-target" id="sessTarget"></div>
       <div class="sess-prog-hint" id="sessProgHint"></div>
       <div class="sess-sets" id="sessSets"></div>
@@ -450,6 +463,17 @@
   // (Buchstaben-Codes) sind laut Nutzer-Test auch über den QR-Code aus dem Original-Handbuch
   // nicht mehr erreichbar (404) — vermutlich seit einer Umstrukturierung bei NOHRD.
   function hasVideo(code){ return /^\d/.test(code); }
+  function useLocalVideos(){ return localStorage.getItem("slimbeamLocalVideos") === "1"; }
+  function localVideoUrl(ex){ return "videos/" + (ex.file || ex.code) + ".mp4"; }
+  function videoBlockHtml(ex, small){
+    if (useLocalVideos()){
+      return '<div class="local-video-wrap'+(small?' compact':'')+'" data-code="'+esc(ex.code)+'">'+
+        '<video controls playsinline preload="none" src="'+esc(localVideoUrl(ex))+'"></video>'+
+        '<div class="local-video-error" hidden>Lokales Video nicht gefunden — Datei „'+esc(ex.file||ex.code)+'.mp4" im videos-Ordner prüfen.</div>'+
+        '</div>';
+    }
+    return hasVideo(ex.code) ? '<a class="ex-video" href="'+videoUrl(ex.code)+'">'+(small?'🎬':'🎬 Video')+'</a>' : '<span class="no-video">kein Video</span>';
+  }
   const STORE_KEY = "slimbeamPlanner_v1";
 
   const POOL = {
@@ -935,7 +959,7 @@
     items.forEach(it => {
       inner += '<div class="sub-ex"><div class="sub-ex-main"><div class="sub-ex-name">'+esc(it.name)+'</div>'+
         '<div class="sub-ex-cue">'+esc(it.cue)+' · '+timeLabel+'</div></div>'+
-        (hasVideo(it.code) ? '<a class="ex-video" href="'+videoUrl(it.code)+'">🎬</a>' : '<span class="no-video">kein Video</span>')+'</div>';
+        (hasVideo(it.code) || useLocalVideos() ? videoBlockHtml(it, true) : '<span class="no-video">kein Video</span>')+'</div>';
     });
     wrap.innerHTML = inner;
     return wrap;
@@ -1007,7 +1031,7 @@
                 '<span class="plate-hint" data-code="'+esc(ex.code)+'">'+(sugg ? '≈ '+sugg.kg+' kg effektiv ('+sugg.stack+' kg Stapel)' : '')+'</span>'+
               '</div>'+
             '</div>'+
-            (hasVideo(ex.code) ? '<a class="ex-video" href="'+videoUrl(ex.code)+'">🎬 Video</a>' : '<span class="no-video">kein Video</span>');
+            (hasVideo(ex.code) || useLocalVideos() ? videoBlockHtml(ex, false) : '<span class="no-video">kein Video</span>');
           dBody.appendChild(row);
         });
 
@@ -1092,7 +1116,7 @@
     wrap.innerHTML = items.map(it =>
       '<div class="sub-ex"><div class="sub-ex-main"><div class="sub-ex-name">'+esc(it.name)+'</div>'+
       '<div class="sub-ex-cue">'+esc(it.cue)+'</div></div>'+
-      (hasVideo(it.code) ? '<a class="ex-video" href="'+videoUrl(it.code)+'">🎬</a>' : '<span class="no-video">kein Video</span>')+'</div>'
+      (hasVideo(it.code) || useLocalVideos() ? videoBlockHtml(it, true) : '<span class="no-video">kein Video</span>')+'</div>'
     ).join("");
   }
   function startSession(weekIndex, dayIndex){
@@ -1143,8 +1167,16 @@
     document.getElementById("sessName").textContent = ex.name;
     document.getElementById("sessCue").textContent = ex.cue;
     const vLink = document.getElementById("sessVideoLink");
-    if (hasVideo(ex.code)){ vLink.href = videoUrl(ex.code); vLink.style.display = ""; vLink.textContent = "🎬 Video"; }
-    else { vLink.removeAttribute("href"); vLink.style.display = "none"; }
+    const localWrap = document.getElementById("sessLocalVideoWrap");
+    if (useLocalVideos()){
+      vLink.style.display = "none";
+      localWrap.innerHTML = '<div class="local-video-wrap"><video controls playsinline preload="none" src="'+esc(localVideoUrl(ex))+'"></video>'+
+        '<div class="local-video-error" hidden>Lokales Video nicht gefunden — Datei „'+esc(ex.file||ex.code)+'.mp4" im videos-Ordner prüfen.</div></div>';
+    } else {
+      localWrap.innerHTML = "";
+      if (hasVideo(ex.code)){ vLink.href = videoUrl(ex.code); vLink.style.display = ""; vLink.textContent = "🎬 Video"; }
+      else { vLink.removeAttribute("href"); vLink.style.display = "none"; }
+    }
     document.getElementById("sessTarget").textContent = "Ziel: " + session.scheme.sets + " × " + session.scheme.reps + " · Pause " + session.scheme.pause + " · RPE " + session.scheme.rpe;
     const progEl = document.getElementById("sessProgHint");
     const prog = progressionHint(ex.code);
@@ -1350,6 +1382,7 @@
     document.querySelectorAll('input[name="level"]').forEach(input => input.checked = (input.value===s.level));
     document.querySelectorAll('input[name="ratio"]').forEach(input => input.checked = (input.value===s.ratio));
     document.getElementById("minimizeChip").checked = s.minimize;
+    document.getElementById("localVideosChip").checked = useLocalVideos();
     daysVal = s.days; daysOut.textContent = daysVal;
     document.getElementById("weeksSelect").value = String(s.weeks);
     updateTimeButtonsUI();
@@ -1390,6 +1423,17 @@
   });
   document.querySelectorAll('input[name="ratio"]').forEach(input => input.addEventListener("change", () => { saveUIIntoProfile(currentProfile); renderProgram(state[currentProfile].program || []); }));
   document.getElementById("minimizeChip").addEventListener("change", () => saveUIIntoProfile(currentProfile));
+  document.getElementById("localVideosChip").addEventListener("change", (e) => {
+    localStorage.setItem("slimbeamLocalVideos", e.target.checked ? "1" : "0");
+    if (state[currentProfile].program) renderProgram(state[currentProfile].program);
+  });
+  document.addEventListener("error", (e) => {
+    if (e.target.tagName === "VIDEO" && e.target.closest(".local-video-wrap")){
+      const wrap = e.target.closest(".local-video-wrap");
+      const err = wrap.querySelector(".local-video-error");
+      if (err) err.hidden = false;
+    }
+  }, true);
 
   document.getElementById("cloudSaveTokenBtn").addEventListener("click", () => {
     const val = document.getElementById("cloudTokenInput").value.trim();
