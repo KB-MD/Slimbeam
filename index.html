@@ -254,11 +254,6 @@
   <h1>SlimBeam Trainingsplaner</h1>
   <div class="tag">Individuelle, periodisierte Trainingsprogramme für den NOHRD SlimBeam</div>
   <div class="source">Kapitel- und Video-Struktur aus dem offiziellen <a href="https://www.nohrd.com/pub/media/pdf/slimbeam/slimbeam-trainingsbuch.pdf">SlimBeam Trainingshandbuch</a></div>
-  <div id="updateBanner" hidden style="margin-top:8px; padding:8px 10px; background:var(--wood-tint); border:1px solid var(--wood); border-radius:6px; font-size:12px; color:var(--wood-dark);">
-    ⬆️ Neuere Version verfügbar.
-    <button type="button" id="updateDownloadBtn" style="display:block; width:100%; margin-top:6px; padding:9px; border:1px solid var(--wood-dark); border-radius:6px; background:var(--surface); color:var(--wood-dark); font-weight:600; font-size:12.5px; cursor:pointer;">🔄 Neue Version jetzt herunterladen</button>
-    <div style="margin-top:4px; font-size:11px;">Landet in „Downloads" — danach die neue index.html in deinen SlimBeam-Ordner verschieben (alte damit ersetzen).</div>
-  </div>
 </header>
 
 <main>
@@ -566,7 +561,6 @@
       '<div class="video-embed-wrap" hidden></div>';
   }
   const STORE_KEY = "slimbeamPlanner_v1";
-  const APP_VERSION = "2026-09-07-21";
 
   const POOL = {
     "Brust": [
@@ -1593,34 +1587,6 @@
   document.getElementById("regenBtn").addEventListener("click", runGenerate);
 
   loadState();
-  fetch("https://raw.githubusercontent.com/KB-MD/Slimbeam/main/version.json", {cache:"no-store"})
-    .then(r => r.ok ? r.json() : null)
-    .then(data => {
-      if (data && data.version && data.version !== APP_VERSION){
-        document.getElementById("updateBanner").hidden = false;
-      }
-    })
-    .catch(() => { /* offline oder kein Netz — kein Update-Hinweis, kein Fehler */ });
-  document.getElementById("updateDownloadBtn").addEventListener("click", async () => {
-    const btn = document.getElementById("updateDownloadBtn");
-    const original = btn.textContent;
-    btn.textContent = "Lade …"; btn.disabled = true;
-    try{
-      const res = await fetch("https://raw.githubusercontent.com/KB-MD/Slimbeam/main/index.html", {cache:"no-store"});
-      if (!res.ok) throw new Error("HTTP "+res.status);
-      const text = await res.text();
-      const blob = new Blob([text], {type:"text/html"});
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url; a.download = "index.html";
-      document.body.appendChild(a); a.click(); document.body.removeChild(a);
-      setTimeout(() => URL.revokeObjectURL(url), 3000);
-      btn.textContent = "✓ Heruntergeladen";
-    }catch(e){
-      btn.textContent = "Fehlgeschlagen — nochmal versuchen";
-      btn.disabled = false;
-    }
-  });
   document.getElementById("cloudTokenInput").value = cloudToken() ? "••••••••••••" : "";
   try{
     const savedProfile = localStorage.getItem("slimbeamCurrentProfile");
