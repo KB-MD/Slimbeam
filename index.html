@@ -147,13 +147,6 @@
   .ex-video{flex:0 0 auto; align-self:center; padding:8px 11px; border:1px solid var(--wood); border-radius:999px; color:var(--wood-dark); background:transparent; font-family:'Inter',sans-serif; font-size:12.5px; font-weight:600; min-height:36px; cursor:pointer; text-decoration:none;}
   .ex-video:active{background:var(--wood-tint);}
   .no-video{flex:0 0 auto; align-self:center; font-size:11.5px; color:var(--ink-muted); font-style:italic; white-space:nowrap;}
-  .ex-thumb-img{flex:0 0 48px; width:48px; height:48px; border-radius:8px; object-fit:cover; background:var(--wood-tint); align-self:flex-start; display:none;}
-  .ex-thumb-img.loaded{display:block;}
-  #sessThumbImg.loaded{display:block !important;}
-  #sessThumbImg{border-radius:10px; object-fit:cover; background:var(--wood-tint);}
-  .local-video-wrap{margin-top:8px; width:100%;}
-  .local-video-wrap video{width:100%; border-radius:8px; background:#000; display:block;}
-  .local-video-error{font-size:11px; color:var(--danger); margin-top:4px;}
 
   .ex-weight-row{margin-top:8px;}
   .ex-weight-row .plate-label{font-size:11px; color:var(--ink-muted); display:block; margin-bottom:4px;}
@@ -340,7 +333,7 @@
 
       <fieldset>
         <legend>🎬 Videos</legend>
-        <div class="hint">Lokale Videos aus einem „videos"-Ordner neben dieser Datei sind aktiv. Fehlt eine Datei, zeigt die App einen Hinweis statt sie stumm zu überspringen.</div>
+        <div class="hint">Der „🎬 Video"-Button öffnet direkt den passenden Vimeo-Link aus deiner privaten SlimBeam-Videobibliothek (im selben Tab).</div>
       </fieldset>
 
       <fieldset>
@@ -411,7 +404,7 @@
     <p><b>Adaptive Progression:</b> Sobald du eine Übung mindestens einmal mit eingetragenem Gewicht abgeschlossen hast, zeigt die App beim nächsten Mal eine Empfehlung: alle geplanten Sätze geschafft → +1 Platte (Progressive Overload); weniger als die Hälfte geschafft → −1 Platte; dazwischen → Gewicht halten. Das ist eine einfache, nachvollziehbare Regel basierend auf deinem eigenen Verlauf — kein automatisches Verstellen, du entscheidest bei der Plattenwahl weiterhin selbst.</p>
     <p><b>Übungsreihenfolge (sportwissenschaftlich):</b> Innerhalb eines Tages werden große/komplexe Muskelgruppen zuerst trainiert (Beine, Ganzkörper, Rücken, Brust), kleinere/isolierte zuletzt (Schultern, Bauch, Trizeps) — gängige Trainingsempfehlung, damit die anspruchsvollsten Bewegungen noch bei voller Kraft ausgeführt werden. „Umbauten minimieren" gruppiert innerhalb dieser Reihenfolge zusätzlich nach Anbauteil, ändert die große Reihenfolge aber nicht mehr.</p>
     <p><b>Aufwärmen/Cool-down:</b> Jeder Tag enthält 3 Aufwärm-Übungen (leicht, dynamisch, am Gerät) und 3 Cool-down-Übungen — Cool-down sind bewusst reine Dehnungen ohne Gerät (Körpergewicht), da nach dem Training keine Kabelspannung mehr nötig ist. Die Zeit dafür war schon vorher in der Dauer-Schätzung enthalten (5 Min. Aufwärmen, 2 Min. Cool-down) und wird jetzt mit konkreten Übungen gefüllt.</p>
-    <p><b>Video-Standbilder:</b> Bei aktivierten lokalen Videos zieht die App automatisch ein Vorschaubild aus jeder Videodatei — das passiert direkt im Browser (ein kurzer Frame wird per Canvas eingelesen), es wird nichts hochgeladen oder gespeichert außer im Zwischenspeicher der laufenden Seite.</p>
+    <p><b>Videos:</b> Der „🎬 Video"-Button verlinkt direkt auf das passende Video in deiner privaten SlimBeam-Showcase auf Vimeo (öffnet im selben Tab). Fehlt für eine Übung ausnahmsweise die genaue Video-ID, landest du auf der allgemeinen Übersichtsseite der Showcase statt auf einem toten Link.</p>
     <p><b>Video-Verfügbarkeit:</b> Für die 26 Zubehör-Übungen (Codes K1–K5, C1–C5, Z1–Z16) ist kein Video verfügbar — die entsprechenden Links sind auf NOHRDs eigenem Server nicht mehr erreichbar (bestätigt per direktem QR-Code-Scan aus dem Original-Handbuch), vermutlich seit einer Umstrukturierung nach Drucklegung. Die App zeigt das ehrlich als „kein Video" an, statt auf einen toten Link zu verweisen. Die Videos zu den 56 nummerierten Kapitel-Übungen (1-0 bis 6-5) funktionieren weiterhin.</p>
   </div>
 
@@ -438,7 +431,6 @@
       <button class="btn-primary" id="sessWarmupNext">Aufwärmen fertig, weiter →</button>
     </div>
     <div id="sessExerciseView" hidden>
-      <img class="ex-thumb-img" id="sessThumbImg" alt="" style="width:100%; height:160px; margin-bottom:10px; display:none;">
       <div class="sess-cat" id="sessCat"></div>
       <div class="sess-name" id="sessName"></div>
       <div class="sess-cue" id="sessCue"></div>
@@ -446,7 +438,6 @@
         <a class="ex-video" id="sessVideoLink" href="#">🎬 Video</a>
         <button type="button" class="ex-video" id="sessSwapBtn" style="background:var(--surface);">🔄 Übung tauschen</button>
       </div>
-      <div id="sessLocalVideoWrap"></div>
       <div class="sess-target" id="sessTarget"></div>
       <div class="sess-prog-hint" id="sessProgHint"></div>
       <div class="sess-sets" id="sessSets"></div>
@@ -484,56 +475,89 @@
 (function(){
   "use strict";
 
-  const VIDEO_BASE = "https://www.nohrd.com/pub/media/video/slimbeam/";
-  function videoUrl(code){ return VIDEO_BASE + code + ".mp4"; }
-  // Codes der Kapitel 1-6 (numerisch) sind bestätigt erreichbar. Die K/C/Z-Zubehörseiten
-  // (Buchstaben-Codes) sind laut Nutzer-Test auch über den QR-Code aus dem Original-Handbuch
-  // nicht mehr erreichbar (404) — vermutlich seit einer Umstrukturierung bei NOHRD.
-  function hasVideo(code){ return !!code && /^\d/.test(code); }
-  function useLocalVideos(){ return true; }
-  function localVideoUrl(ex){ return "videos/" + (ex.file || ex.code) + ".mp4"; }
-
-  // Erzeugt Standbilder aus den lokalen Videodateien direkt im Browser (Canvas-Snapshot).
-  // Es wird nichts hochgeladen — die Verarbeitung passiert ausschließlich lokal auf dem Gerät.
-  const thumbCache = {};
-  function loadThumb(imgEl, path){
-    if (thumbCache[path]){ imgEl.src = thumbCache[path]; imgEl.classList.add("loaded"); return; }
-    const v = document.createElement("video");
-    v.muted = true; v.playsInline = true; v.preload = "metadata";
-    v.addEventListener("loadeddata", () => {
-      try{ v.currentTime = Math.min(1.5, (v.duration||3)/3); }catch(e){}
-    });
-    v.addEventListener("seeked", () => {
-      try{
-        const c = document.createElement("canvas");
-        c.width = v.videoWidth || 320; c.height = v.videoHeight || 240;
-        c.getContext("2d").drawImage(v, 0, 0, c.width, c.height);
-        const url = c.toDataURL("image/jpeg", 0.7);
-        thumbCache[path] = url;
-        imgEl.src = url;
-        imgEl.classList.add("loaded");
-      }catch(e){}
-    }, {once:true});
-    v.addEventListener("error", () => { imgEl.classList.remove("loaded"); }, {once:true});
-    v.src = path;
+  const VIMEO_SHOWCASE = "https://vimeo.com/showcase/slimbeam";
+  const VIMEO_IDS = {
+    "abductor_kicks": {right:"646359579", left:"646400402"},
+    "adductor_kicks": {right:"646396074", left:"646431806"},
+    "bent_over_rows_broad": {default:"646447601"},
+    "bent_over_rows_narrow": {default:"646442146"},
+    "biceps_curls": {default:"645978953"},
+    "biceps_curls_alternating": {default:"645980828"},
+    "biceps_curls_lat": {default:"646439594"},
+    "biceps_pulls": {default:"646016484"},
+    "butt_kicks": {right:"646360951", left:"646424303"},
+    "cable_cross_incline_one_arm": {right:"645948009", left:"645959244"},
+    "calf_raises": {default:"646320647"},
+    "chest_press": {default:"645949022"},
+    "chest_press_decline": {default:"645950406"},
+    "chest_press_decline_one_arm": {right:"645955906", left:"645954106"},
+    "chest_press_incline_supination": {default:"645949613"},
+    "chest_press_incline_supination_one_arm": {right:"645953282", left:"645952679"},
+    "chest_press_one_arm": {right:"645951997", left:"645951441"},
+    "core_rotation": {right:"646811175", left:"646810390"},
+    "cross_country_ski": {default:"646354147"},
+    "dead_lift_45": {default:"645977925"},
+    "diagonal_rotation": {right:"646889453", left:"646888181"},
+    "easy_dips": {default:"646763510"},
+    "fly_reverse_one_arm": {left:"645974487"},
+    "flys": {default:"645956826"},
+    "flys_decline": {default:"645957519"},
+    "flys_egyptian": {default:"645979854"},
+    "flys_incline": {default:"645935625"},
+    "flys_one_arm": {right:"645939138"},
+    "flys_one_arm_decline": {right:"645943298"},
+    "flys_pyramid": {default:"645976867"},
+    "flys_reverse": {default:"645972166"},
+    "front_raise_one_arm": {right:"646885686", left:"646886841"},
+    "front_raise_supination": {default:"646342779"},
+    "front_raises": {default:"646449147"},
+    "horizontal_rotation_one_leg": {right:"646906745", left:"646904901"},
+    "kicks_back_one_arm": {right:"646017597", left:"646041638"},
+    "lat_pull_front": {default:"646352254"},
+    "lat_pull_front_short": {default:"646451724"},
+    "lunge_flys": {default:"646322471"},
+    "pull_down": {default:"646438692"},
+    "pull_down_short": {default:"646462020"},
+    "pull_down_straight_arms": {default:"646433390"},
+    "pull_down_straight_arms_short": {default:"646458451"},
+    "pull_downs": {default:"645968239"},
+    "pull_downs_one_arm": {right:"645966629", left:"645969576"},
+    "pull_downs_rotation_supination": {default:"645970537"},
+    "pull_overs": {default:"645944732"},
+    "push_ups_incline": {default:"646762782"},
+    "reverse_lunge_flys": {default:"646901981"},
+    "rowing_incline_45": {default:"645964403"},
+    "rowing_incline_45_one_arm": {right:"645958440", left:"645965332"},
+    "rowing_standing": {default:"645960646"},
+    "rowing_standing_one_arm": {right:"645961571", left:"645962511"},
+    "shoulder_press": {default:"646764216"},
+    "shoulder_press_one_arm": {right:"646764794", left:"646765799"},
+    "shoulder_side_raise": {default:"646812218"},
+    "shoulder_side_raise_one_arm": {right:"646880152", left:"646878708"},
+    "shrugs": {default:"646768783"},
+    "side_tilt": {right:"646348760", left:"646352856"},
+    "triceps_press": {default:"645984526"},
+    "triceps_press_one_arm_horizontal": {default:"646012828"},
+    "triceps_press_over_head": {default:"645985847"},
+    "upright_rowing": {default:"646440488"}
+  };
+  // Baut den Vimeo-Link zur passenden Übung. ex.side ("right"/"left") wird bei
+  // einarmigen/einbeinigen Paaren automatisch mitgegeben (siehe generateProgram).
+  // Fehlt eine ID (z. B. 3 Lücken in der vom Nutzer gelieferten Liste), landet man
+  // auf der allgemeinen Showcase-Seite statt auf einem toten Link.
+  function vimeoUrl(ex){
+    const key = ex.file || ex.code;
+    const entry = key && VIMEO_IDS[key];
+    if (!entry) return VIMEO_SHOWCASE;
+    const id = (ex.side && entry[ex.side]) || entry.default || entry.right || entry.left;
+    return id ? (VIMEO_SHOWCASE + "?video=" + id) : VIMEO_SHOWCASE;
   }
-  function generateThumbnailsIn(container){
-    if (!useLocalVideos() || !container) return;
-    container.querySelectorAll(".ex-thumb-img").forEach(img => {
-      if (img.dataset.path) loadThumb(img, img.dataset.path);
-    });
-  }
+  function hasVideo(ex){ return !!((ex.file || ex.code) && VIMEO_IDS[ex.file || ex.code]); }
   function videoBlockHtml(ex, small){
-    if (useLocalVideos()){
-      return '<div class="local-video-wrap'+(small?' compact':'')+'" data-code="'+esc(ex.code)+'">'+
-        '<video controls playsinline preload="none" src="'+esc(localVideoUrl(ex))+'"></video>'+
-        '<div class="local-video-error" hidden>Lokales Video nicht gefunden — Datei „'+esc(ex.file||ex.code)+'.mp4" im videos-Ordner prüfen.</div>'+
-        '</div>';
-    }
-    return hasVideo(ex.code) ? '<a class="ex-video" href="'+videoUrl(ex.code)+'">'+(small?'🎬':'🎬 Video')+'</a>' : '<span class="no-video">kein Video</span>';
+    return '<a class="ex-video" href="'+vimeoUrl(ex)+'">'+(small?'🎬':'🎬 Video')+'</a>';
   }
   const STORE_KEY = "slimbeamPlanner_v1";
-  const APP_VERSION = "2026-09-07-12";
+  const APP_VERSION = "2026-09-07-13";
 
   const POOL = {
     "Brust": [
@@ -845,9 +869,8 @@
         cats.forEach(cat => {
           const ex = drawExercise(queues, cat);
           if (isUnilateral(ex)){
-            const base = ex.file || ex.code;
-            exercises.push({cat, name:ex.name+" (rechts)", code:ex.code, cue:ex.cue, file: base ? base+"_right" : null});
-            exercises.push({cat, name:ex.name+" (links)", code:ex.code, cue:ex.cue, file: base ? base+"_left" : null});
+            exercises.push({cat, name:ex.name+" (rechts)", code:ex.code, cue:ex.cue, file:ex.file, side:"right"});
+            exercises.push({cat, name:ex.name+" (links)", code:ex.code, cue:ex.cue, file:ex.file, side:"left"});
           } else {
             exercises.push({cat, name:ex.name, code:ex.code, cue:ex.cue});
           }
@@ -1019,7 +1042,7 @@
     items.forEach(it => {
       inner += '<div class="sub-ex"><div class="sub-ex-main"><div class="sub-ex-name">'+esc(it.name)+'</div>'+
         '<div class="sub-ex-cue">'+esc(it.cue)+' · '+timeLabel+'</div></div>'+
-        (it.code && (hasVideo(it.code) || useLocalVideos()) ? videoBlockHtml(it, true) : '')+'</div>';
+        (hasVideo(it) ? videoBlockHtml(it, true) : '')+'</div>';
     });
     wrap.innerHTML = inner;
     return wrap;
@@ -1075,7 +1098,6 @@
           const prog = progressionHint(ex.code);
           row.innerHTML =
             '<div class="ex-n num">'+(ei+1)+'</div>'+
-            (useLocalVideos() && (ex.code || ex.file) ? '<img class="ex-thumb-img" data-path="'+esc(localVideoUrl(ex))+'" alt="">' : '')+
             '<div class="ex-main">'+
               '<div class="ex-name">'+esc(ex.name)+'</div>'+
               '<div class="ex-cue">'+esc(ex.cue)+'</div>'+
@@ -1092,7 +1114,7 @@
                 '<span class="plate-hint" data-code="'+esc(ex.code)+'">'+(sugg ? '≈ '+sugg.kg+' kg effektiv ('+sugg.stack+' kg Stapel)' : '')+'</span>'+
               '</div>'+
             '</div>'+
-            (hasVideo(ex.code) || useLocalVideos() ? videoBlockHtml(ex, false) : '<span class="no-video">kein Video</span>');
+            (hasVideo(ex) ? videoBlockHtml(ex, false) : '<span class="no-video">kein Video</span>');
           dBody.appendChild(row);
         });
 
@@ -1109,7 +1131,6 @@
       det.appendChild(body);
       container.appendChild(det);
     });
-    generateThumbnailsIn(container);
   }
 
   document.getElementById("program").addEventListener("click", (e) => {
@@ -1195,7 +1216,7 @@
     wrap.innerHTML = items.map(it =>
       '<div class="sub-ex"><div class="sub-ex-main"><div class="sub-ex-name">'+esc(it.name)+'</div>'+
       '<div class="sub-ex-cue">'+esc(it.cue)+'</div></div>'+
-      (it.code && (hasVideo(it.code) || useLocalVideos()) ? videoBlockHtml(it, true) : '')+'</div>'
+      (hasVideo(it) ? videoBlockHtml(it, true) : '')+'</div>'
     ).join("");
   }
   function startSession(weekIndex, dayIndex){
@@ -1244,27 +1265,10 @@
     document.getElementById("sessProgressBar").style.width = Math.round(((session.exIndex)/session.day.exercises.length)*100)+"%";
     document.getElementById("sessCat").textContent = ex.cat + " · " + ex.code;
     document.getElementById("sessName").textContent = ex.name;
-    const sessThumb = document.getElementById("sessThumbImg");
-    if (useLocalVideos() && (ex.code || ex.file)){
-      sessThumb.style.display = "";
-      sessThumb.dataset.path = localVideoUrl(ex);
-      sessThumb.src = "";
-      loadThumb(sessThumb, localVideoUrl(ex));
-    } else {
-      sessThumb.style.display = "none";
-    }
     document.getElementById("sessCue").textContent = ex.cue;
     const vLink = document.getElementById("sessVideoLink");
-    const localWrap = document.getElementById("sessLocalVideoWrap");
-    if (useLocalVideos()){
-      vLink.style.display = "none";
-      localWrap.innerHTML = '<div class="local-video-wrap"><video controls playsinline preload="none" src="'+esc(localVideoUrl(ex))+'"></video>'+
-        '<div class="local-video-error" hidden>Lokales Video nicht gefunden — Datei „'+esc(ex.file||ex.code)+'.mp4" im videos-Ordner prüfen.</div></div>';
-    } else {
-      localWrap.innerHTML = "";
-      if (hasVideo(ex.code)){ vLink.href = videoUrl(ex.code); vLink.style.display = ""; vLink.textContent = "🎬 Video"; }
-      else { vLink.removeAttribute("href"); vLink.style.display = "none"; }
-    }
+    if (hasVideo(ex)){ vLink.href = vimeoUrl(ex); vLink.style.display = ""; vLink.textContent = "🎬 Video"; }
+    else { vLink.removeAttribute("href"); vLink.style.display = "none"; }
     document.getElementById("sessTarget").textContent = "Ziel: " + session.scheme.sets + " × " + session.scheme.reps + " · Pause " + session.scheme.pause + " · RPE " + session.scheme.rpe;
     const progEl = document.getElementById("sessProgHint");
     const prog = progressionHint(ex.code);
@@ -1517,13 +1521,6 @@
   document.getElementById("profAgeInput").addEventListener("input", (e) => { state[currentProfile].age = parseInt(e.target.value,10) || state[currentProfile].age; saveState(); });
   document.getElementById("profHeightInput").addEventListener("input", (e) => { state[currentProfile].height = parseInt(e.target.value,10) || state[currentProfile].height; saveState(); });
   document.getElementById("profWeightInput").addEventListener("input", (e) => { state[currentProfile].weight = parseInt(e.target.value,10) || state[currentProfile].weight; saveState(); });
-  document.addEventListener("error", (e) => {
-    if (e.target.tagName === "VIDEO" && e.target.closest(".local-video-wrap")){
-      const wrap = e.target.closest(".local-video-wrap");
-      const err = wrap.querySelector(".local-video-error");
-      if (err) err.hidden = false;
-    }
-  }, true);
 
   document.getElementById("cloudSaveTokenBtn").addEventListener("click", () => {
     const val = document.getElementById("cloudTokenInput").value.trim();
